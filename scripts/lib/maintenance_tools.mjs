@@ -520,15 +520,18 @@ function runProcess(command, commandArgs, options = {}) {
   const timeoutMs = options.timeoutMs || DEFAULT_TIMEOUT_MS;
   const maxLogBytes = options.maxLogBytes || DEFAULT_MAX_LOG_BYTES;
   const executable = process.platform === 'win32' && command === 'npm' ? 'npm.cmd' : command;
-  const env = {
-    PATH: process.env.PATH,
-    HOME: process.env.HOME,
-    LANG: process.env.LANG,
-    LC_ALL: process.env.LC_ALL,
+  const env = {};
+  const copyEnv = (key) => {
+    if (typeof process.env[key] === 'string') {
+      env[key] = process.env[key];
+    }
   };
+  for (const key of ['PATH', 'Path', 'HOME', 'LANG', 'LC_ALL']) {
+    copyEnv(key);
+  }
   if (process.platform === 'win32') {
     for (const key of ['APPDATA', 'ComSpec', 'LOCALAPPDATA', 'PATHEXT', 'SystemRoot', 'TEMP', 'TMP', 'USERPROFILE', 'windir']) {
-      if (process.env[key]) env[key] = process.env[key];
+      copyEnv(key);
     }
   }
   return new Promise((resolvePromise) => {
