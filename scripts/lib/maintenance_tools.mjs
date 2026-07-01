@@ -519,8 +519,9 @@ function buildRunEnvelope({ job, args, mode, runId, status, summary, error = nul
 function runProcess(command, commandArgs, options = {}) {
   const timeoutMs = options.timeoutMs || DEFAULT_TIMEOUT_MS;
   const maxLogBytes = options.maxLogBytes || DEFAULT_MAX_LOG_BYTES;
+  const executable = process.platform === 'win32' && command === 'npm' ? 'npm.cmd' : command;
   return new Promise((resolvePromise) => {
-    const child = spawn(command, commandArgs, {
+    const child = spawn(executable, commandArgs, {
       cwd: options.cwd,
       env: {
         PATH: process.env.PATH,
