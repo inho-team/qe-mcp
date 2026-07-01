@@ -876,7 +876,7 @@ async function main() {
       maintenanceRun.result?.structuredContent?.status !== 'completed' ||
       maintenanceRun.result?.structuredContent?.job?.effective_permission !== 'read-only'
     ) {
-      throw new Error('qe_run_maintenance_job read-only run-once failed');
+      throw new Error(`qe_run_maintenance_job read-only run-once failed: ${JSON.stringify(maintenanceRun.result?.structuredContent || maintenanceRun)}`);
     }
     if (maintenanceStatus.result?.structuredContent?.state?.run?.run_id !== maintenanceRunId) {
       throw new Error('qe_get_maintenance_job_status failed to read run state');
