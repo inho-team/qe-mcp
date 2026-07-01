@@ -1,0 +1,35 @@
+{
+  "name": "@inho-team/qe-mcp",
+  "version": "0.1.0",
+  "description": "Standalone MCP server for QE expert-library search, recommendation, and explicit expert guidance reads",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inho-team/qe-mcp.git"
+  },
+  "homepage": "https://github.com/inho-team/qe-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/inho-team/qe-mcp/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "expert-library/",
+    "scripts/",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
+  "bin": {
+    "qe-mcp": "./scripts/qe_mcp.mjs",
+    "qe-mcp-server": "./scripts/qe_mcp_server.mjs"
+  },
+  "scripts": {
+    "qe:mcp": "node scripts/qe_mcp.mjs",
+    "selftest": "node scripts/selftest_qe_mcp_server.mjs",
+    "check": "node --check scripts/lib/qe_expert_library.mjs && node --check scripts/lib/qe_mcp_registry.mjs && node --check scripts/qe_mcp.mjs && node --check scripts/qe_mcp_server.mjs && node --check scripts/selftest_qe_mcp_server.mjs"
+  }
+}
