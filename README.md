@@ -104,7 +104,8 @@ qe-mcp-server
 
 In the client, the MCP tool list should include `qeExpertLibrary` tools such as
 `qe_search_experts`, `qe_read_expert`, `qe_run_codex_agent`,
-`qe_run_claude_agent`, and `qe_cross_agent_help`.
+`qe_run_claude_agent`, `qe_cross_agent_help`, and the bounded QE maintenance
+and supervisor tools.
 
 ## Tools
 
@@ -117,6 +118,14 @@ In the client, the MCP tool list should include `qeExpertLibrary` tools such as
 - `qe_run_codex_agent`: active local Codex runner with bounded timeout/output and default read-only posture
 - `qe_run_claude_agent`: active local Claude runner with bounded timeout/output and default plan/read-only posture
 - `qe_cross_agent_help`: passive local runner contract and CLI capability summary
+- `qe_list_maintenance_jobs`: passive catalog of QE maintenance jobs and permission classes
+- `qe_run_maintenance_job`: dry-run or run-once predefined maintenance jobs with source/config writes, secrets, runner delegation, recursion, and internal scheduling denied
+- `qe_get_maintenance_job_status`: read recorded maintenance job/run status
+- `qe_get_maintenance_job_log`: read bounded slices of recorded maintenance run logs
+- `qe_supervisor_status`: read bounded supervisor status projection
+- `qe_supervisor_events`: read bounded supervisor events with severity and ack filters
+- `qe_supervisor_ack`: acknowledge one supervisor event by `event_id`
+- `qe_supervisor_specs`: list supervisor monitor specs
 
 ## Resources
 
@@ -162,6 +171,45 @@ does not launch either runner.
 Do not use the active runner tools for routine expert-library lookups, untrusted
 prompts, broad autonomous edits, or tasks that require inheriting a user's full
 MCP configuration. Use the passive expert tools for guidance-only workflows.
+
+The QE maintenance tools are explicit orchestration/status surfaces, not a
+scheduler. They never install timers, background daemons, or hidden recurring
+jobs inside the stdio MCP server. Time-based execution belongs to an external
+scheduler such as Qcron, launchd, cron, or CI. Maintenance `run-once` is limited
+to predefined read-only/report-only jobs and narrowly approved recoverable-write
+jobs.
+
+Recoverable-write candidates (`qrefresh`, `qarchive`, `qsweep`) require an
+explicit preview-bound approval flow:
+
+1. Call `qe_run_maintenance_job` with `mode: "dry-run"`.
+2. Inspect `changed_paths_preview`, `recovery_strategy`, and
+   `approval_fingerprint`.
+3. Call `qe_run_maintenance_job` with `mode: "run-once"`,
+   `confirm_recoverable_write: true`, and the matching
+   `approval_fingerprint`.
+4. Inspect `changed_paths`, `recovery_manifest`, status, and logs.
+
+The approval fingerprint is bound to `job_id`, `mode`, `workspace_root`,
+`changed_paths_preview`, and `permission_profile`; mismatches fail closed with
+`policy_denied`. Recoverable-write execution is restricted to `.qe/state`
+maintenance paths and still denies source writes, config writes, secrets/env
+access, runner delegation, recursion, and internal scheduling.
+
+The QE supervisor tools are also status/control surfaces, not a resident
+scheduler. They read `.qe/state/supervisor` or optional `~/.qe/daemon` state,
+return bounded event/status/spec projections, and allow only explicit ack state
+writes. CLI install is dry-run only in this phase:
+
+```bash
+qe-mcp supervisor status --json
+qe-mcp supervisor events --json
+qe-mcp supervisor specs --json
+qe-mcp supervisor install --dry-run --json
+```
+
+`qe-mcp supervisor install` without `--dry-run` fails closed and does not write
+service files, launch agents, cron entries, or start daemons.
 
 ## Active Runner Examples
 

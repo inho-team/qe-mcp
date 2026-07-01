@@ -10,6 +10,20 @@ import {
   recommendExpert,
   searchExperts,
 } from './lib/qe_expert_library.mjs';
+import {
+  buildMaintenanceToolSchemas,
+  getMaintenanceJobLog,
+  getMaintenanceJobStatus,
+  listMaintenanceJobs,
+  runMaintenanceJob,
+} from './lib/maintenance_tools.mjs';
+import {
+  ackSupervisorEvent,
+  buildSupervisorToolSchemas,
+  getSupervisorStatus,
+  listSupervisorEvents,
+  listSupervisorSpecs,
+} from './lib/supervisor_tools.mjs';
 
 const PROTOCOL_VERSION = '2025-03-26';
 const SERVER_VERSION = '0.2.1';
@@ -75,6 +89,8 @@ const AGENT_TOOL_HELP = [
     recursion: 'Safe to call during planning because it does not recurse into other agents.',
   },
 ];
+const MAINTENANCE_TOOL_SCHEMAS = buildMaintenanceToolSchemas();
+const SUPERVISOR_TOOL_SCHEMAS = buildSupervisorToolSchemas();
 
 // Detects optional runner helper absence without hiding real import failures.
 function isMissingOptionalModule(error, specifier) {
@@ -325,6 +341,54 @@ function listTools() {
         'Return passive cross-agent runner help. Side effects: none. Auth: none beyond local runner expectations. Timeout: immediate local response. Output cap: compact structured help only. Recursion: safe because this tool never launches runners.',
       inputSchema: agentToolSchemas.qe_cross_agent_help,
     },
+    {
+      name: 'qe_list_maintenance_jobs',
+      description:
+        'List bounded QE maintenance jobs and their permission classes. Side effects: none. Scheduling remains external; this tool never starts timers or background daemons.',
+      inputSchema: MAINTENANCE_TOOL_SCHEMAS.qe_list_maintenance_jobs,
+    },
+    {
+      name: 'qe_run_maintenance_job',
+      description:
+        'Dry-run or run-once a predefined QE maintenance job. Side effects: dry-run is report-only; run-once is limited to read-only/report-only predefined jobs. Source/config writes, secret/env access, runner delegation, recursion, and internal scheduling are denied.',
+      inputSchema: MAINTENANCE_TOOL_SCHEMAS.qe_run_maintenance_job,
+    },
+    {
+      name: 'qe_get_maintenance_job_status',
+      description:
+        'Read recorded QE maintenance job/run status. Side effects: none. Returns state written by explicit run-once calls.',
+      inputSchema: MAINTENANCE_TOOL_SCHEMAS.qe_get_maintenance_job_status,
+    },
+    {
+      name: 'qe_get_maintenance_job_log',
+      description:
+        'Read a bounded slice of a QE maintenance run log. Side effects: none. Requires a run_id.',
+      inputSchema: MAINTENANCE_TOOL_SCHEMAS.qe_get_maintenance_job_log,
+    },
+    {
+      name: 'qe_supervisor_status',
+      description:
+        'Read bounded QE supervisor status projection. Side effects: none. Scheduling remains external; this tool never starts timers or background daemons.',
+      inputSchema: SUPERVISOR_TOOL_SCHEMAS.qe_supervisor_status,
+    },
+    {
+      name: 'qe_supervisor_events',
+      description:
+        'Read bounded QE supervisor events with severity and ack filters. Side effects: none; raw log injection is capped and preview-only.',
+      inputSchema: SUPERVISOR_TOOL_SCHEMAS.qe_supervisor_events,
+    },
+    {
+      name: 'qe_supervisor_ack',
+      description:
+        'Acknowledge one QE supervisor event by event_id. Side effects: writes ack state only under documented QE supervisor state paths.',
+      inputSchema: SUPERVISOR_TOOL_SCHEMAS.qe_supervisor_ack,
+    },
+    {
+      name: 'qe_supervisor_specs',
+      description:
+        'List bounded QE supervisor monitor specs. Side effects: none. Monitor execution and scheduling remain external.',
+      inputSchema: SUPERVISOR_TOOL_SCHEMAS.qe_supervisor_specs,
+    },
   ];
 }
 
@@ -388,6 +452,38 @@ async function callTool(name, args = {}) {
         ? await optionalAgentHelpers.getCrossAgentHelp()
         : null;
     return toolResponse(buildCrossAgentHelpPayload(payload));
+  }
+
+  if (name === 'qe_list_maintenance_jobs') {
+    return toolResponse(listMaintenanceJobs(args));
+  }
+
+  if (name === 'qe_run_maintenance_job') {
+    return toolResponse(await runMaintenanceJob(args));
+  }
+
+  if (name === 'qe_get_maintenance_job_status') {
+    return toolResponse(getMaintenanceJobStatus(args));
+  }
+
+  if (name === 'qe_get_maintenance_job_log') {
+    return toolResponse(getMaintenanceJobLog(args));
+  }
+
+  if (name === 'qe_supervisor_status') {
+    return toolResponse(getSupervisorStatus(args));
+  }
+
+  if (name === 'qe_supervisor_events') {
+    return toolResponse(listSupervisorEvents(args));
+  }
+
+  if (name === 'qe_supervisor_ack') {
+    return toolResponse(ackSupervisorEvent(args));
+  }
+
+  if (name === 'qe_supervisor_specs') {
+    return toolResponse(listSupervisorSpecs(args));
   }
 
   throw new Error(`Unsupported tool: ${name}`);
