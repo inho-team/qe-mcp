@@ -24,8 +24,8 @@
     "package.json"
   ],
   "bin": {
-    "qe-mcp": "./scripts/qe_mcp.mjs",
-    "qe-mcp-server": "./scripts/qe_mcp_server.mjs"
+    "qe-mcp": "scripts/qe_mcp.mjs",
+    "qe-mcp-server": "scripts/qe_mcp_server.mjs"
   },
   "scripts": {
     "qe:mcp": "node scripts/qe_mcp.mjs",
