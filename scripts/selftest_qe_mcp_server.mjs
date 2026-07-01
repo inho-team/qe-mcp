@@ -12,6 +12,7 @@ import {
   normalizeRequest,
   parseOutput,
   resolveAllowedCwd,
+  runAgentCommand,
   runProcess,
   sanitizeEnv,
 } from './lib/agent_runner_common.mjs';
@@ -182,6 +183,25 @@ async function runRunnerModuleTests() {
     throw new Error('stream-json normalization failed');
   }
 
+  const textParsed = parseOutput({
+    stdout: 'plain text result\n',
+    stderr: 'warning only\n',
+    outputMode: 'text',
+    exitCode: 0,
+  });
+  if (textParsed.status !== 'ok' || textParsed.summary !== 'plain text result') {
+    throw new Error('text output normalization failed');
+  }
+
+  const malformedJson = parseOutput({
+    stdout: '{',
+    outputMode: 'json',
+    exitCode: 0,
+  });
+  if (malformedJson.status !== 'error' || malformedJson.error?.category !== 'malformed_output') {
+    throw new Error('malformed JSON classification failed');
+  }
+
   try {
     normalizeRequest({ task: 'nested', call_depth: 1 }, 'codex');
     throw new Error('normalizeRequest allowed nested runner recursion');
@@ -248,6 +268,30 @@ async function runRunnerModuleTests() {
   });
   if (timeoutCapture.timedOut !== true || timeoutCapture.signal !== 'SIGTERM') {
     throw new Error('fake subprocess timeout path failed');
+  }
+
+  const commandResult = await runAgentCommand({
+    engine: 'codex',
+    request: {
+      cwd: process.cwd(),
+      output_mode: 'jsonl',
+      max_output_bytes: 4000,
+      timeout_ms: 1000,
+      call_depth: 0,
+      call_chain_id: 'selftest-chain',
+      origin_engine: 'selftest',
+    },
+    command: 'fake',
+    args: ['run'],
+    outputMode: 'jsonl',
+    spawnImpl: createFakeSpawn({ stdout: '{"type":"result","summary":"agent done","result":"done"}\n' }),
+  });
+  if (
+    commandResult.status !== 'ok' ||
+    commandResult.metadata.lifecycle.cleanup_status !== 'not_needed' ||
+    commandResult.normalization.output_format !== 'jsonl'
+  ) {
+    throw new Error('runAgentCommand lifecycle normalization failed');
   }
 }
 

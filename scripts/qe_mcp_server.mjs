@@ -12,7 +12,7 @@ import {
 } from './lib/qe_expert_library.mjs';
 
 const PROTOCOL_VERSION = '2025-03-26';
-const SERVER_VERSION = '0.1.0';
+const SERVER_VERSION = '0.2.0';
 let activeRunnerCount = 0;
 const FALLBACK_AGENT_TOOL_SCHEMAS = {
   qe_run_codex_agent: {
