@@ -83,6 +83,7 @@ function upsertClaudeConfig(configPath, registry) {
     if (server.enabledClients && !server.enabledClients.includes('claude')) continue;
     const launch = buildLaunchDefinition(server);
     next.mcpServers[name] = {
+      type: launch.transport,
       command: launch.command,
       args: launch.args,
       env: launch.env,

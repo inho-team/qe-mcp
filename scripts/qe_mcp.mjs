@@ -144,10 +144,21 @@ async function main() {
   }
 
   if (command === 'init-registry') {
+    const defaults = defaultRegistry();
     if (existsSync(options.registry) && !options.force) {
-      throw new Error(`Registry already exists: ${options.registry}. Use --force to overwrite.`);
+      const current = readRegistry(options.registry);
+      writeRegistry(options.registry, {
+        ...current,
+        version: defaults.version,
+        servers: {
+          ...(current.servers || {}),
+          qeExpertLibrary: defaults.servers.qeExpertLibrary,
+        },
+      });
+      console.log(`Updated QE MCP registry: ${options.registry}`);
+      return;
     }
-    writeRegistry(options.registry, defaultRegistry());
+    writeRegistry(options.registry, defaults);
     console.log(`Initialized QE MCP registry: ${options.registry}`);
     return;
   }

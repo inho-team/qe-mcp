@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'fs';
 import { spawn } from 'child_process';
 import { join, resolve } from 'path';
 import { tmpdir } from 'os';
@@ -23,8 +23,13 @@ import {
   listSupervisorSpecs,
   planSupervisorInstall,
 } from './lib/supervisor_tools.mjs';
+import {
+  syncRegistryToClients,
+  writeRegistry,
+} from './lib/qe_mcp_registry.mjs';
 
 const serverPath = resolve(process.cwd(), 'scripts', 'qe_mcp_server.mjs');
+const cliPath = resolve(process.cwd(), 'scripts', 'qe_mcp.mjs');
 const libDir = resolve(process.cwd(), 'scripts', 'lib');
 
 // Encodes a JSON-RPC message for stdio MCP framing.
@@ -80,6 +85,48 @@ function createClient() {
     },
     notify(method, params = {}) {
       child.stdin.write(encode({ jsonrpc: '2.0', method, params }));
+    },
+    close() {
+      child.kill();
+    },
+  };
+}
+
+function createLineClient() {
+  const child = spawn(process.execPath, [serverPath], {
+    cwd: process.cwd(),
+    stdio: ['pipe', 'pipe', 'inherit'],
+    windowsHide: true,
+  });
+
+  let buffer = '';
+  const pending = new Map();
+
+  child.stdout.on('data', (chunk) => {
+    buffer += chunk.toString('utf8');
+    while (true) {
+      const lineEnd = buffer.indexOf('\n');
+      if (lineEnd < 0) return;
+      const line = buffer.slice(0, lineEnd).trim();
+      buffer = buffer.slice(lineEnd + 1);
+      if (!line) continue;
+      const message = JSON.parse(line);
+      const resolver = pending.get(message.id);
+      if (resolver) {
+        pending.delete(message.id);
+        resolver(message);
+      }
+    }
+  });
+
+  let nextId = 1;
+  return {
+    child,
+    request(method, params = {}) {
+      const id = nextId++;
+      const message = { jsonrpc: '2.0', id, method, params };
+      child.stdin.write(`${JSON.stringify(message)}\n`);
+      return new Promise((resolvePromise) => pending.set(id, resolvePromise));
     },
     close() {
       child.kill();
@@ -240,6 +287,77 @@ function runSupervisorModuleTests() {
     const unsupported = planSupervisorInstall({ platform: 'freebsd' });
     if (unsupported.error_code !== 'UNSUPPORTED_PLATFORM' || unsupported.side_effects !== 'none') {
       throw new Error('supervisor unsupported platform response failed');
+    }
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+}
+
+function runCli(args, cwd = process.cwd()) {
+  return new Promise((resolvePromise) => {
+    const child = spawn(process.execPath, [cliPath, ...args], {
+      cwd,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
+    child.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
+    child.on('close', (code, signal) => resolvePromise({ code, signal, stdout, stderr }));
+  });
+}
+
+async function runRegistrySyncTests() {
+  const workspace = mkdtempSync(resolve(tmpdir(), 'qe-registry-selftest-'));
+  try {
+    const registryPath = join(workspace, 'registry.json');
+    const paths = {
+      claude: join(workspace, 'claude.json'),
+      codex: join(workspace, 'config.toml'),
+      gemini: join(workspace, 'settings.json'),
+    };
+    const windowsServerPath = 'C:\\Users\\Dev User\\AppData\\Roaming\\npm\\node_modules\\@inho-team\\qe-mcp\\scripts\\qe_mcp_server.mjs';
+    writeRegistry(registryPath, {
+      version: 1,
+      servers: {
+        qeExpertLibrary: {
+          transport: 'stdio',
+          command: 'C:\\Program Files\\nodejs\\node.exe',
+          args: [windowsServerPath],
+          cwd: 'C:\\Users\\Dev User\\AppData\\Roaming\\npm\\node_modules\\@inho-team\\qe-mcp',
+          env: { QE_TEST: 'a"b\\c' },
+          trust: true,
+          enabledClients: ['claude', 'codex', 'gemini'],
+        },
+      },
+    });
+
+    syncRegistryToClients({ registryPath, clients: ['claude', 'codex', 'gemini'], paths });
+    const claude = JSON.parse(readFileSync(paths.claude, 'utf8'));
+    const gemini = JSON.parse(readFileSync(paths.gemini, 'utf8'));
+    const codex = readFileSync(paths.codex, 'utf8');
+    if (claude.mcpServers?.qeExpertLibrary?.type !== 'stdio') {
+      throw new Error('claude MCP sync omitted type=stdio');
+    }
+    if (claude.mcpServers.qeExpertLibrary.args[0] !== windowsServerPath) {
+      throw new Error('claude MCP sync changed Windows-style server path');
+    }
+    if (gemini.mcpServers?.qeExpertLibrary?.trust !== true) {
+      throw new Error('gemini MCP sync omitted trust flag');
+    }
+    if (!codex.includes('C:\\\\Program Files\\\\nodejs\\\\node.exe') || !codex.includes('QE_TEST = "a\\"b\\\\c"')) {
+      throw new Error('codex MCP sync did not TOML-escape Windows path/env values');
+    }
+
+    const firstInit = await runCli(['init-registry', '--registry', registryPath, '--force'], workspace);
+    const secondInit = await runCli(['init-registry', '--registry', registryPath], workspace);
+    if (firstInit.code !== 0 || secondInit.code !== 0) {
+      throw new Error(`init-registry should be idempotent (first=${firstInit.code}, second=${secondInit.code})`);
+    }
+    const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+    if (!registry.servers?.qeExpertLibrary) {
+      throw new Error('init-registry did not write qeExpertLibrary');
     }
   } finally {
     rmSync(workspace, { recursive: true, force: true });
@@ -445,7 +563,21 @@ function assertAgentRunResultShape(result, label) {
 async function main() {
   await runRunnerModuleTests();
   runSupervisorModuleTests();
+  await runRegistrySyncTests();
   const helperExports = await loadOptionalHelperExports();
+  const lineClient = createLineClient();
+  try {
+    const lineInit = await lineClient.request('initialize', {
+      protocolVersion: '2025-11-25',
+      capabilities: { roots: {}, elicitation: {} },
+      clientInfo: { name: 'claude-code', version: '2.1.170' },
+    });
+    if (lineInit.result?.protocolVersion !== '2025-11-25') {
+      throw new Error('newline JSON-RPC initialize framing failed');
+    }
+  } finally {
+    lineClient.close();
+  }
   const client = createClient();
   const supervisorWorkspace = mkdtempSync(resolve(tmpdir(), 'qe-supervisor-mcp-selftest-'));
   try {

@@ -26,7 +26,7 @@ import {
 } from './lib/supervisor_tools.mjs';
 
 const PROTOCOL_VERSION = '2025-03-26';
-const SERVER_VERSION = '0.2.2';
+const SERVER_VERSION = '0.2.3';
 let activeRunnerCount = 0;
 const FALLBACK_AGENT_TOOL_SCHEMAS = {
   qe_run_codex_agent: {
@@ -542,9 +542,15 @@ function getPrompt(name, args = {}) {
   throw new Error(`Unsupported prompt: ${name}`);
 }
 
-// Writes a JSON-RPC message with stdio content-length framing.
+// Writes a JSON-RPC message using the same stdio framing family as the client.
+let outputFraming = 'content-length';
+
 function sendMessage(message) {
   const json = JSON.stringify(message);
+  if (outputFraming === 'json-line') {
+    process.stdout.write(`${json}\n`);
+    return;
+  }
   process.stdout.write(`Content-Length: ${Buffer.byteLength(json, 'utf8')}\r\n\r\n${json}`);
 }
 
@@ -572,7 +578,7 @@ async function handleRequest(message) {
   try {
     if (method === 'initialize') {
       sendResponse(id, {
-        protocolVersion: PROTOCOL_VERSION,
+        protocolVersion: params.protocolVersion || PROTOCOL_VERSION,
         capabilities: initializeCapabilities(),
         serverInfo: {
           name: 'qe-expert-library',
@@ -635,6 +641,17 @@ process.stdin.on('data', (chunk) => {
   buffer = Buffer.concat([buffer, chunk]);
 
   while (true) {
+    if (!buffer.toString('utf8', 0, Math.min(buffer.length, 32)).startsWith('Content-Length:')) {
+      const lineEnd = buffer.indexOf('\n');
+      if (lineEnd < 0) return;
+      const line = buffer.slice(0, lineEnd).toString('utf8').trim();
+      buffer = buffer.slice(lineEnd + 1);
+      if (!line) continue;
+      outputFraming = 'json-line';
+      void handleRequest(JSON.parse(line));
+      continue;
+    }
+
     const headerEnd = buffer.indexOf('\r\n\r\n');
     if (headerEnd < 0) return;
 
@@ -652,6 +669,7 @@ process.stdin.on('data', (chunk) => {
     const body = buffer.slice(headerEnd + 4, totalLength).toString('utf8');
     buffer = buffer.slice(totalLength);
 
+    outputFraming = 'content-length';
     void handleRequest(JSON.parse(body));
   }
 });
