@@ -609,6 +609,9 @@ async function main() {
     });
 
     if (init.result?.serverInfo?.name !== 'qe-expert-library') throw new Error('initialize failed');
+    if (init.result?.capabilities?.resources || init.result?.capabilities?.prompts) {
+      throw new Error('initialize should not advertise resources/prompts by default');
+    }
     const toolNames = tools.result?.tools?.map((tool) => tool.name) || [];
     for (const name of [
       'qe_search_experts',

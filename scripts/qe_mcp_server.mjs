@@ -26,7 +26,7 @@ import {
 } from './lib/supervisor_tools.mjs';
 
 const PROTOCOL_VERSION = '2025-03-26';
-const SERVER_VERSION = '0.2.1';
+const SERVER_VERSION = '0.2.2';
 let activeRunnerCount = 0;
 const FALLBACK_AGENT_TOOL_SCHEMAS = {
   qe_run_codex_agent: {
@@ -91,6 +91,15 @@ const AGENT_TOOL_HELP = [
 ];
 const MAINTENANCE_TOOL_SCHEMAS = buildMaintenanceToolSchemas();
 const SUPERVISOR_TOOL_SCHEMAS = buildSupervisorToolSchemas();
+const EXPOSE_OPTIONAL_SURFACES = process.env.QE_MCP_EXPOSE_RESOURCES === '1'
+  || process.env.QE_MCP_EXPOSE_PROMPTS === '1';
+
+function initializeCapabilities() {
+  return {
+    tools: {},
+    ...(EXPOSE_OPTIONAL_SURFACES ? { resources: {}, prompts: {} } : {}),
+  };
+}
 
 // Detects optional runner helper absence without hiding real import failures.
 function isMissingOptionalModule(error, specifier) {
@@ -564,11 +573,7 @@ async function handleRequest(message) {
     if (method === 'initialize') {
       sendResponse(id, {
         protocolVersion: PROTOCOL_VERSION,
-        capabilities: {
-          tools: {},
-          resources: {},
-          prompts: {},
-        },
+        capabilities: initializeCapabilities(),
         serverInfo: {
           name: 'qe-expert-library',
           version: SERVER_VERSION,
