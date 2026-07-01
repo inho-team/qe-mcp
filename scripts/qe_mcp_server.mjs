@@ -13,8 +13,225 @@ import {
 
 const PROTOCOL_VERSION = '2025-03-26';
 const SERVER_VERSION = '0.1.0';
+let activeRunnerCount = 0;
+const FALLBACK_AGENT_TOOL_SCHEMAS = {
+  qe_run_codex_agent: {
+    type: 'object',
+    required: ['task'],
+    properties: {
+      task: { type: 'string' },
+      prompt: { type: 'string' },
+      cwd: { type: 'string' },
+      timeout_ms: { type: 'integer', minimum: 1000, maximum: 600000 },
+      max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
+      allow_writes: { type: 'boolean' },
+      sandbox_mode: { type: 'string', enum: ['read-only', 'workspace-write'] },
+      model: { type: 'string' },
+    },
+  },
+  qe_run_claude_agent: {
+    type: 'object',
+    required: ['task'],
+    properties: {
+      task: { type: 'string' },
+      prompt: { type: 'string' },
+      cwd: { type: 'string' },
+      timeout_ms: { type: 'integer', minimum: 1000, maximum: 600000 },
+      max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
+      allow_writes: { type: 'boolean' },
+      permission_mode: { type: 'string', enum: ['plan', 'default', 'dontAsk', 'auto', 'acceptEdits'] },
+      model: { type: 'string' },
+    },
+  },
+  qe_cross_agent_help: {
+    type: 'object',
+    properties: {},
+  },
+};
 
+const AGENT_TOOL_HELP = [
+  {
+    name: 'qe_run_codex_agent',
+    sideEffects: 'May launch a Codex agent. Default read-only; writes require allow_writes and workspace-write.',
+    auth: 'Uses the local Codex CLI/session auth already configured on this machine.',
+    timeout: 'Bounded by timeout_ms; default 60000 ms, max 600000 ms.',
+    outputCap: 'Bounded by max_output_bytes; default 24000 bytes, max 1000000 bytes.',
+    recursion: 'Do not invoke from a nested Codex/Claude agent task that could route back into this tool.',
+  },
+  {
+    name: 'qe_run_claude_agent',
+    sideEffects: 'May launch a Claude agent. Default plan/read-only posture with restricted tools.',
+    auth: 'Uses the local Claude CLI/session auth already configured on this machine.',
+    timeout: 'Bounded by timeout_ms; default 60000 ms, max 600000 ms.',
+    outputCap: 'Bounded by max_output_bytes; default 24000 bytes, max 1000000 bytes.',
+    recursion: 'Do not invoke from a nested Codex/Claude agent task that could route back into this tool.',
+  },
+  {
+    name: 'qe_cross_agent_help',
+    sideEffects: 'Passive help only; never launches agent runners or edits files.',
+    auth: 'No new auth flow; only documents local runner expectations.',
+    timeout: 'Returns immediately from local help data.',
+    outputCap: 'Structured help payload is compact local metadata.',
+    recursion: 'Safe to call during planning because it does not recurse into other agents.',
+  },
+];
+
+// Detects optional runner helper absence without hiding real import failures.
+function isMissingOptionalModule(error, specifier) {
+  return (
+    error?.code === 'ERR_MODULE_NOT_FOUND' &&
+    String(error.message || '').includes(specifier.split('/').pop())
+  );
+}
+
+// Loads active runner helpers only when their local modules are present.
+async function loadOptionalAgentHelpers() {
+  const helpers = {};
+  const optionalModules = [
+    ['runCodexAgent', './lib/codex_runner.mjs'],
+    ['runClaudeAgent', './lib/claude_runner.mjs'],
+    ['getCrossAgentHelp', './lib/cross_agent_help.mjs'],
+    ['buildToolSchemas', './lib/agent_runner_contract.mjs'],
+  ];
+
+  for (const [exportName, specifier] of optionalModules) {
+    try {
+      const module = await import(specifier);
+      if (typeof module[exportName] === 'function') {
+        helpers[exportName] = module[exportName];
+      }
+    } catch (error) {
+      if (!isMissingOptionalModule(error, specifier)) {
+        throw error;
+      }
+    }
+  }
+
+  return helpers;
+}
+
+const optionalAgentHelpers = await loadOptionalAgentHelpers();
+
+// Resolves active runner MCP schemas with a static fallback.
+function getAgentToolSchemas() {
+  if (typeof optionalAgentHelpers.buildToolSchemas !== 'function') {
+    return FALLBACK_AGENT_TOOL_SCHEMAS;
+  }
+
+  try {
+    const helperSchemas = optionalAgentHelpers.buildToolSchemas();
+    if (!helperSchemas || typeof helperSchemas !== 'object') {
+      return FALLBACK_AGENT_TOOL_SCHEMAS;
+    }
+    return {
+      ...FALLBACK_AGENT_TOOL_SCHEMAS,
+      qe_run_codex_agent:
+        helperSchemas.qe_run_codex_agent || helperSchemas.codex || FALLBACK_AGENT_TOOL_SCHEMAS.qe_run_codex_agent,
+      qe_run_claude_agent:
+        helperSchemas.qe_run_claude_agent || helperSchemas.claude || FALLBACK_AGENT_TOOL_SCHEMAS.qe_run_claude_agent,
+      qe_cross_agent_help:
+        helperSchemas.qe_cross_agent_help || helperSchemas.help || FALLBACK_AGENT_TOOL_SCHEMAS.qe_cross_agent_help,
+    };
+  } catch {
+    return FALLBACK_AGENT_TOOL_SCHEMAS;
+  }
+}
+
+// Normalizes passive cross-agent help payloads for MCP structuredContent.
+function buildCrossAgentHelpPayload(payload) {
+  const normalizedPayload =
+    payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? payload
+      : { overview: 'Local cross-agent runner contracts for Codex and Claude.' };
+
+  const tools = Array.isArray(normalizedPayload.tools)
+    ? normalizedPayload.tools
+    : normalizedPayload.tools && typeof normalizedPayload.tools === 'object'
+      ? Object.entries(normalizedPayload.tools).map(([name, value]) => ({ name, ...value }))
+      : AGENT_TOOL_HELP;
+  const notes = Array.isArray(normalizedPayload.notes)
+    ? normalizedPayload.notes
+    : [
+        'qe_cross_agent_help is passive and never launches agent runners.',
+        'Use qe_run_codex_agent or qe_run_claude_agent only when explicit cross-agent execution is required.',
+      ];
+
+  return {
+    ...normalizedPayload,
+    launchesAgentRunners: false,
+    tools,
+    notes,
+  };
+}
+
+// Validates required string fields before active runner dispatch.
+function requireNonEmptyString(value, fieldName, toolName) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${toolName} requires a non-empty "${fieldName}" string`);
+  }
+  return value.trim();
+}
+
+// Converts legacy task input into prompt input for runner tools.
+function normalizeRunnerArgs(toolName, args = {}) {
+  const prompt = args.prompt ?? args.task;
+  return {
+    ...args,
+    prompt: requireNonEmptyString(prompt, 'prompt', toolName),
+  };
+}
+
+// Dispatches active runner calls through optional local helpers.
+async function callRunnerTool(toolName, runner, args) {
+  if (typeof runner !== 'function') {
+    throw new Error(`${toolName} is unavailable because its local runner helper is not present`);
+  }
+  const engine = toolName.includes('codex') ? 'codex' : 'claude';
+  if (activeRunnerCount >= 1) {
+    return toolResponse({
+      engine,
+      status: 'error',
+      summary: 'active runner limit reached',
+      output: '',
+      events: [],
+      metadata: {
+        cwd: null,
+        model: args.model || null,
+        duration_ms: 0,
+        exit_code: null,
+        signal: null,
+        call_depth: args.call_depth || 0,
+        call_chain_id: args.call_chain_id || '',
+        origin_engine: args.origin_engine || 'unknown',
+        lifecycle: { cleanup_status: 'not_started' },
+      },
+      normalization: {
+        output_format: args.output_mode || 'unknown',
+        normalization_status: 'empty',
+        truncated: false,
+        stdout_bytes: 0,
+        stderr_bytes: 0,
+        parse_error: null,
+        raw_capture_policy: 'preview-only',
+      },
+      error: {
+        category: 'budget_exceeded',
+        message: 'only one active runner call is allowed per server process',
+        retryable: true,
+      },
+    });
+  }
+  activeRunnerCount += 1;
+  try {
+    return toolResponse(await runner(args));
+  } finally {
+    activeRunnerCount -= 1;
+  }
+}
+
+// Returns all passive expert tools plus opt-in runner tools.
 function listTools() {
+  const agentToolSchemas = getAgentToolSchemas();
   return [
     {
       name: 'qe_search_experts',
@@ -90,22 +307,43 @@ function listTools() {
         properties: {},
       },
     },
+    {
+      name: 'qe_run_codex_agent',
+      description:
+        'Run a local Codex agent for active execution. Side effects: default read-only; writes require allow_writes and workspace-write. Auth: uses existing local Codex CLI/session auth. Timeout/output: bounded by timeout_ms and max_output_bytes. Recursion: blocked by default.',
+      inputSchema: agentToolSchemas.qe_run_codex_agent,
+    },
+    {
+      name: 'qe_run_claude_agent',
+      description:
+        'Run a local Claude agent for active execution. Side effects: default plan/read-only posture with restricted tools. Auth: uses existing local Claude CLI/session auth. Timeout/output: bounded by timeout_ms and max_output_bytes. Recursion: blocked by default.',
+      inputSchema: agentToolSchemas.qe_run_claude_agent,
+    },
+    {
+      name: 'qe_cross_agent_help',
+      description:
+        'Return passive cross-agent runner help. Side effects: none. Auth: none beyond local runner expectations. Timeout: immediate local response. Output cap: compact structured help only. Recursion: safe because this tool never launches runners.',
+      inputSchema: agentToolSchemas.qe_cross_agent_help,
+    },
   ];
 }
 
+// Wraps plain payloads into MCP text and structured responses.
 function toolResponse(payload) {
+  const text = typeof payload === 'string' ? payload : JSON.stringify(payload);
   return {
     content: [
       {
         type: 'text',
-        text: typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2),
+        text,
       },
     ],
     structuredContent: typeof payload === 'string' ? { text: payload } : payload,
   };
 }
 
-function callTool(name, args = {}) {
+// Handles MCP tool calls and routes each name to its implementation.
+async function callTool(name, args = {}) {
   if (name === 'qe_search_experts') {
     return toolResponse(searchExperts(args));
   }
@@ -136,9 +374,26 @@ function callTool(name, args = {}) {
     });
   }
 
+  if (name === 'qe_run_codex_agent') {
+    return callRunnerTool(name, optionalAgentHelpers.runCodexAgent, args);
+  }
+
+  if (name === 'qe_run_claude_agent') {
+    return callRunnerTool(name, optionalAgentHelpers.runClaudeAgent, args);
+  }
+
+  if (name === 'qe_cross_agent_help') {
+    const payload =
+      typeof optionalAgentHelpers.getCrossAgentHelp === 'function'
+        ? await optionalAgentHelpers.getCrossAgentHelp()
+        : null;
+    return toolResponse(buildCrossAgentHelpPayload(payload));
+  }
+
   throw new Error(`Unsupported tool: ${name}`);
 }
 
+// Lists prompt templates exposed by the passive expert library.
 function listPrompts() {
   return [
     {
@@ -168,6 +423,7 @@ function listPrompts() {
   ];
 }
 
+// Builds prompt responses from the expert-library prompt helpers.
 function getPrompt(name, args = {}) {
   if (name === 'qe-use-expert') {
     return buildExpertPrompt({ expert: args.expert, task: args.task, mode: 'apply' });
@@ -181,15 +437,18 @@ function getPrompt(name, args = {}) {
   throw new Error(`Unsupported prompt: ${name}`);
 }
 
+// Writes a JSON-RPC message with stdio content-length framing.
 function sendMessage(message) {
   const json = JSON.stringify(message);
   process.stdout.write(`Content-Length: ${Buffer.byteLength(json, 'utf8')}\r\n\r\n${json}`);
 }
 
+// Sends a successful JSON-RPC response.
 function sendResponse(id, result) {
   sendMessage({ jsonrpc: '2.0', id, result });
 }
 
+// Sends a JSON-RPC error response without leaking stack traces.
 function sendError(id, error) {
   sendMessage({
     jsonrpc: '2.0',
@@ -201,7 +460,8 @@ function sendError(id, error) {
   });
 }
 
-function handleRequest(message) {
+// Dispatches incoming JSON-RPC requests from the MCP client.
+async function handleRequest(message) {
   const { id, method, params = {} } = message;
 
   try {
@@ -236,7 +496,7 @@ function handleRequest(message) {
     }
 
     if (method === 'tools/call') {
-      sendResponse(id, callTool(params.name, params.arguments || {}));
+      sendResponse(id, await callTool(params.name, params.arguments || {}));
       return;
     }
 
@@ -291,6 +551,6 @@ process.stdin.on('data', (chunk) => {
     const body = buffer.slice(headerEnd + 4, totalLength).toString('utf8');
     buffer = buffer.slice(totalLength);
 
-    handleRequest(JSON.parse(body));
+    void handleRequest(JSON.parse(body));
   }
 });
