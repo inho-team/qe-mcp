@@ -519,7 +519,12 @@ function buildRunEnvelope({ job, args, mode, runId, status, summary, error = nul
 function runProcess(command, commandArgs, options = {}) {
   const timeoutMs = options.timeoutMs || DEFAULT_TIMEOUT_MS;
   const maxLogBytes = options.maxLogBytes || DEFAULT_MAX_LOG_BYTES;
-  const executable = process.platform === 'win32' && command === 'npm' ? 'npm.cmd' : command;
+  const executable = process.platform === 'win32' && command === 'npm' && process.env.npm_execpath
+    ? process.execPath
+    : command;
+  const args = process.platform === 'win32' && command === 'npm' && process.env.npm_execpath
+    ? [process.env.npm_execpath, ...commandArgs]
+    : commandArgs;
   const env = {};
   const copyEnv = (key) => {
     if (typeof process.env[key] === 'string') {
@@ -535,7 +540,7 @@ function runProcess(command, commandArgs, options = {}) {
     }
   }
   return new Promise((resolvePromise) => {
-    const child = spawn(executable, commandArgs, {
+    const child = spawn(executable, args, {
       cwd: options.cwd,
       env,
       windowsHide: true,
