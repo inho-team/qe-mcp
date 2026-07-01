@@ -560,7 +560,7 @@ function assertAgentRunResultShape(result, label) {
 }
 
 function isMaintenanceStatePath(path) {
-  return String(path).replace(/\\/g, '/').includes('/.qe/state/mcp-maintenance/');
+  return String(path).replace(/\\/g, '/').includes('.qe/state/mcp-maintenance/');
 }
 
 // Runs passive MCP regression checks and active runner negative-path checks.
