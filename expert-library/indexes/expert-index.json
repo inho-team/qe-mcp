@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-01T00:48:29.070Z",
+  "generatedAt": "2026-07-01T01:53:17.555Z",
   "experts": [
     {
       "name": "Qagentation",
@@ -442,6 +442,137 @@
       }
     },
     {
+      "name": "Qcode-documenter",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "quality",
+      "summary": "Generates, formats, and validates technical documentation — including docstrings, OpenAPI/Swagger specs, JSDoc annotations, doc portals, and user guides. Use when adding docstrings to functions or classes, creating API documentation, building documentation sites, or writing tutorials and user guides. Invoke for OpenAPI/Swagger specs, JSDoc, doc portals, getting started guides.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "documentation",
+        "docstrings",
+        "OpenAPI",
+        "Swagger",
+        "JSDoc",
+        "comments",
+        "API docs",
+        "tutorials",
+        "user guides",
+        "doc site",
+        "code documenter",
+        "code-documenter"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 95,
+        "full": 2158
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qcode-documenter/SKILL.md",
+      "references": [
+        {
+          "alias": "api-docs-fastapi-django",
+          "path": "expert-library/packs/core-experts/skills/Qcode-documenter/references/api-docs-fastapi-django.md"
+        },
+        {
+          "alias": "api-docs-nestjs-express",
+          "path": "expert-library/packs/core-experts/skills/Qcode-documenter/references/api-docs-nestjs-express.md"
+        },
+        {
+          "alias": "coverage-reports",
+          "path": "expert-library/packs/core-experts/skills/Qcode-documenter/references/coverage-reports.md"
+        },
+        {
+          "alias": "documentation-systems",
+          "path": "expert-library/packs/core-experts/skills/Qcode-documenter/references/documentation-systems.md"
+        },
+        {
+          "alias": "interactive-api-docs",
+          "path": "expert-library/packs/core-experts/skills/Qcode-documenter/references/interactive-api-docs.md"
+        },
+        {
+          "alias": "python-docstrings",
+          "path": "expert-library/packs/core-experts/skills/Qcode-documenter/references/python-docstrings.md"
+        },
+        {
+          "alias": "typescript-jsdoc",
+          "path": "expert-library/packs/core-experts/skills/Qcode-documenter/references/typescript-jsdoc.md"
+        },
+        {
+          "alias": "user-guides-tutorials",
+          "path": "expert-library/packs/core-experts/skills/Qcode-documenter/references/user-guides-tutorials.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qcode-reviewer",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "quality",
+      "summary": "Analyzes code diffs and files to identify bugs, security vulnerabilities (SQL injection, XSS, insecure deserialization), code smells, N+1 queries, naming issues, and architectural concerns, then produces a structured review report with prioritized, actionable feedback. Use when reviewing pull requests, conducting code quality audits, identifying refactoring opportunities, or checking for security issues. Invoke for PR reviews, code quality checks, refactoring suggestions, review code, code quality. Complements specialized skills (security-reviewer, test-master) by providing broad-scope review across correctness, performance, maintainability, and test coverage in a single pass.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "code review",
+        "PR review",
+        "pull request",
+        "review code",
+        "code quality",
+        "code reviewer",
+        "code-reviewer"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 172,
+        "full": 2067
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qcode-reviewer/SKILL.md",
+      "references": [
+        {
+          "alias": "common-issues",
+          "path": "expert-library/packs/core-experts/skills/Qcode-reviewer/references/common-issues.md"
+        },
+        {
+          "alias": "feedback-examples",
+          "path": "expert-library/packs/core-experts/skills/Qcode-reviewer/references/feedback-examples.md"
+        },
+        {
+          "alias": "receiving-feedback",
+          "path": "expert-library/packs/core-experts/skills/Qcode-reviewer/references/receiving-feedback.md"
+        },
+        {
+          "alias": "report-template",
+          "path": "expert-library/packs/core-experts/skills/Qcode-reviewer/references/report-template.md"
+        },
+        {
+          "alias": "review-checklist",
+          "path": "expert-library/packs/core-experts/skills/Qcode-reviewer/references/review-checklist.md"
+        },
+        {
+          "alias": "spec-compliance-review",
+          "path": "expert-library/packs/core-experts/skills/Qcode-reviewer/references/spec-compliance-review.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
       "name": "Qcontent-research-writer",
       "kind": "skill",
       "pack": "core-experts",
@@ -656,6 +787,111 @@
       }
     },
     {
+      "name": "Qdebugging-wizard",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "quality",
+      "summary": "Parses error messages, traces execution flow through stack traces, correlates log entries to identify failure points, and applies systematic hypothesis-driven methodology to isolate and resolve bugs. Use when investigating errors, analyzing stack traces, finding root causes of unexpected behavior, troubleshooting crashes, or performing log analysis, error investigation, or root cause analysis.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "debug",
+        "error",
+        "bug",
+        "exception",
+        "traceback",
+        "stack trace",
+        "troubleshoot",
+        "not working",
+        "crash",
+        "fix issue",
+        "debugging wizard",
+        "debugging-wizard"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 99,
+        "full": 1390
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qdebugging-wizard/SKILL.md",
+      "references": [
+        {
+          "alias": "common-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/common-patterns.md"
+        },
+        {
+          "alias": "debugging-tools",
+          "path": "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/debugging-tools.md"
+        },
+        {
+          "alias": "quick-fixes",
+          "path": "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/quick-fixes.md"
+        },
+        {
+          "alias": "strategies",
+          "path": "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/strategies.md"
+        },
+        {
+          "alias": "systematic-debugging",
+          "path": "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/systematic-debugging.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qdesign",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "frontend",
+      "summary": "Authors DESIGN.md — the upstream design-system specification (tokens, typography, spacing, component guidelines) that every frontend skill reads as source of truth. Branch points: use THIS for writing/updating the DESIGN.md spec itself; use Qfrontend-design to implement UI code from it; use Qvisual-redesign to reconcile rendered pages against it; use Qdesign-audit to scan source for spec drift; use Qweb-design-guidelines for external heuristics (Vercel WIG) review. Supports live token extraction from reference URLs via Chrome MCP and `--scan` to bootstrap DESIGN.md from an existing codebase (tailwind config, theme, components).",
+      "invocationTriggers": [
+        "When a project needs a design system defined before frontend work begins. Trigger phrases: 'create design system'",
+        "'define design spec'",
+        "'set up DESIGN.md'",
+        "'design foundation'",
+        "'visual identity'.",
+        "design"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "sonnet",
+      "tokenEstimate": {
+        "summary": 159,
+        "full": 3599
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qdesign/SKILL.md",
+      "references": [
+        {
+          "alias": "extract-styles",
+          "path": "expert-library/packs/core-experts/skills/Qdesign/lib/extract-styles.js"
+        },
+        {
+          "alias": "normalize-tokens",
+          "path": "expert-library/packs/core-experts/skills/Qdesign/lib/normalize-tokens.mjs"
+        },
+        {
+          "alias": "validate-design-md",
+          "path": "expert-library/packs/core-experts/skills/Qdesign/lib/validate-design-md.mjs"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
       "name": "Qdesign-audit",
       "kind": "skill",
       "pack": "core-experts",
@@ -707,51 +943,6 @@
       },
       "sourcePath": "expert-library/packs/core-experts/skills/Qdesign-studio/SKILL.md",
       "references": [],
-      "review": {
-        "status": "unreviewed",
-        "lastReviewed": null
-      },
-      "clientSupport": {
-        "claude": "mcp-tool",
-        "codex": "mcp-tool",
-        "gemini": "mcp-tool"
-      }
-    },
-    {
-      "name": "Qdesign",
-      "kind": "skill",
-      "pack": "core-experts",
-      "domain": "frontend",
-      "summary": "Authors DESIGN.md — the upstream design-system specification (tokens, typography, spacing, component guidelines) that every frontend skill reads as source of truth. Branch points: use THIS for writing/updating the DESIGN.md spec itself; use Qfrontend-design to implement UI code from it; use Qvisual-redesign to reconcile rendered pages against it; use Qdesign-audit to scan source for spec drift; use Qweb-design-guidelines for external heuristics (Vercel WIG) review. Supports live token extraction from reference URLs via Chrome MCP and `--scan` to bootstrap DESIGN.md from an existing codebase (tailwind config, theme, components).",
-      "invocationTriggers": [
-        "When a project needs a design system defined before frontend work begins. Trigger phrases: 'create design system'",
-        "'define design spec'",
-        "'set up DESIGN.md'",
-        "'design foundation'",
-        "'visual identity'.",
-        "design"
-      ],
-      "relatedCoreSkill": "Qrun-task",
-      "recommendedModel": "sonnet",
-      "tokenEstimate": {
-        "summary": 159,
-        "full": 3599
-      },
-      "sourcePath": "expert-library/packs/core-experts/skills/Qdesign/SKILL.md",
-      "references": [
-        {
-          "alias": "extract-styles",
-          "path": "expert-library/packs/core-experts/skills/Qdesign/lib/extract-styles.js"
-        },
-        {
-          "alias": "normalize-tokens",
-          "path": "expert-library/packs/core-experts/skills/Qdesign/lib/normalize-tokens.mjs"
-        },
-        {
-          "alias": "validate-design-md",
-          "path": "expert-library/packs/core-experts/skills/Qdesign/lib/validate-design-md.mjs"
-        }
-      ],
       "review": {
         "status": "unreviewed",
         "lastReviewed": null
@@ -1049,6 +1240,62 @@
       }
     },
     {
+      "name": "Qfeature-forge",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "workflow",
+      "summary": "Conducts structured requirements workshops to produce feature specifications, user stories, EARS-format functional requirements, acceptance criteria, and implementation checklists. Use when defining new features, gathering requirements, or writing specifications. Invoke for feature definition, requirements gathering, user stories, EARS format specs, PRDs, acceptance criteria, or requirement matrices.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "requirements",
+        "specification",
+        "feature definition",
+        "user stories",
+        "EARS",
+        "planning",
+        "feature forge",
+        "feature-forge"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 101,
+        "full": 1637
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qfeature-forge/SKILL.md",
+      "references": [
+        {
+          "alias": "acceptance-criteria",
+          "path": "expert-library/packs/core-experts/skills/Qfeature-forge/references/acceptance-criteria.md"
+        },
+        {
+          "alias": "ears-syntax",
+          "path": "expert-library/packs/core-experts/skills/Qfeature-forge/references/ears-syntax.md"
+        },
+        {
+          "alias": "interview-questions",
+          "path": "expert-library/packs/core-experts/skills/Qfeature-forge/references/interview-questions.md"
+        },
+        {
+          "alias": "pre-discovery-subagents",
+          "path": "expert-library/packs/core-experts/skills/Qfeature-forge/references/pre-discovery-subagents.md"
+        },
+        {
+          "alias": "specification-template",
+          "path": "expert-library/packs/core-experts/skills/Qfeature-forge/references/specification-template.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
       "name": "Qfine-tuning-expert",
       "kind": "skill",
       "pack": "core-experts",
@@ -1168,6 +1415,92 @@
       }
     },
     {
+      "name": "Qfullstack-guardian",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "security",
+      "summary": "Builds security-focused full-stack web applications by implementing integrated frontend and backend components with layered security at every level. Covers the complete stack from database to UI, enforcing auth, input validation, output encoding, and parameterized queries across all layers. Use when implementing features across frontend and backend, building REST APIs with corresponding UI, connecting frontend components to backend endpoints, creating end-to-end data flows from database to UI, or implementing CRUD operations with UI forms. Distinct from frontend-only, backend-only, or API-only skills in that it simultaneously addresses all three perspectives—Frontend, Backend, and Security—within a single implementation workflow. Invoke for full-stack feature work, web app development, authenticated API routes with views, microservices, real-time features, monorepo architecture, or technology selection decisions.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "fullstack",
+        "implement feature",
+        "build feature",
+        "create API",
+        "frontend and backend",
+        "full stack",
+        "new feature",
+        "implement",
+        "microservices",
+        "websocket",
+        "real-time",
+        "deployment pipeline",
+        "monorepo",
+        "architecture decision",
+        "technology selection",
+        "end-to-end",
+        "fullstack guardian",
+        "fullstack-guardian"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 232,
+        "full": 1930
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qfullstack-guardian/SKILL.md",
+      "references": [
+        {
+          "alias": "api-design-standards",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/api-design-standards.md"
+        },
+        {
+          "alias": "architecture-decisions",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/architecture-decisions.md"
+        },
+        {
+          "alias": "backend-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/backend-patterns.md"
+        },
+        {
+          "alias": "common-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/common-patterns.md"
+        },
+        {
+          "alias": "deliverables-checklist",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/deliverables-checklist.md"
+        },
+        {
+          "alias": "design-template",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/design-template.md"
+        },
+        {
+          "alias": "error-handling",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/error-handling.md"
+        },
+        {
+          "alias": "frontend-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/frontend-patterns.md"
+        },
+        {
+          "alias": "integration-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/integration-patterns.md"
+        },
+        {
+          "alias": "security-checklist",
+          "path": "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/security-checklist.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
       "name": "Qgame-developer",
       "kind": "skill",
       "pack": "core-experts",
@@ -1213,64 +1546,6 @@
         {
           "alias": "unreal-cpp",
           "path": "expert-library/packs/core-experts/skills/Qgame-developer/references/unreal-cpp.md"
-        }
-      ],
-      "review": {
-        "status": "unreviewed",
-        "lastReviewed": null
-      },
-      "clientSupport": {
-        "claude": "mcp-tool",
-        "codex": "mcp-tool",
-        "gemini": "mcp-tool"
-      }
-    },
-    {
-      "name": "Qgolang-pro",
-      "kind": "skill",
-      "pack": "core-experts",
-      "domain": "language",
-      "summary": "Implements concurrent Go patterns using goroutines and channels, designs and builds microservices with gRPC or REST, optimizes Go application performance with pprof, and enforces idiomatic Go with generics, interfaces, and robust error handling. Use when building Go applications requiring concurrent programming, microservices architecture, or high-performance systems. Invoke for goroutines, channels, Go generics, gRPC integration, CLI tools, benchmarks, or table-driven testing.",
-      "invocationTriggers": [
-        "When specialized language or framework best practices are needed.",
-        "Go",
-        "Golang",
-        "goroutines",
-        "channels",
-        "gRPC",
-        "microservices Go",
-        "Go generics",
-        "concurrent programming",
-        "Go interfaces",
-        "golang-pro"
-      ],
-      "relatedCoreSkill": "Qrun-task",
-      "recommendedModel": "haiku",
-      "tokenEstimate": {
-        "summary": 121,
-        "full": 2190
-      },
-      "sourcePath": "expert-library/packs/core-experts/skills/Qgolang-pro/SKILL.md",
-      "references": [
-        {
-          "alias": "concurrency",
-          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/concurrency.md"
-        },
-        {
-          "alias": "generics",
-          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/generics.md"
-        },
-        {
-          "alias": "interfaces",
-          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/interfaces.md"
-        },
-        {
-          "alias": "project-structure",
-          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/project-structure.md"
-        },
-        {
-          "alias": "testing",
-          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/testing.md"
         }
       ],
       "review": {
@@ -1360,6 +1635,64 @@
         {
           "alias": "stringutil_test",
           "path": "expert-library/packs/core-experts/skills/Qgolang/skills/examples/stringutil_test.go"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qgolang-pro",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "language",
+      "summary": "Implements concurrent Go patterns using goroutines and channels, designs and builds microservices with gRPC or REST, optimizes Go application performance with pprof, and enforces idiomatic Go with generics, interfaces, and robust error handling. Use when building Go applications requiring concurrent programming, microservices architecture, or high-performance systems. Invoke for goroutines, channels, Go generics, gRPC integration, CLI tools, benchmarks, or table-driven testing.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Go",
+        "Golang",
+        "goroutines",
+        "channels",
+        "gRPC",
+        "microservices Go",
+        "Go generics",
+        "concurrent programming",
+        "Go interfaces",
+        "golang-pro"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 121,
+        "full": 2190
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qgolang-pro/SKILL.md",
+      "references": [
+        {
+          "alias": "concurrency",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/concurrency.md"
+        },
+        {
+          "alias": "generics",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/generics.md"
+        },
+        {
+          "alias": "interfaces",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/interfaces.md"
+        },
+        {
+          "alias": "project-structure",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/project-structure.md"
+        },
+        {
+          "alias": "testing",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/testing.md"
         }
       ],
       "review": {
@@ -2316,6 +2649,63 @@
         {
           "alias": "testing-quality",
           "path": "expert-library/packs/core-experts/skills/Qphp-pro/references/testing-quality.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qplaywright-expert",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "quality",
+      "summary": "Use when writing E2E tests with Playwright, setting up test infrastructure, or debugging flaky browser tests. Invoke to write test scripts, create page objects, configure test fixtures, set up reporters, add CI integration, implement API mocking, or perform visual regression testing. Trigger terms: Playwright, E2E test, end-to-end, browser testing, automation, UI testing, visual testing, Page Object Model, test flakiness.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Playwright",
+        "E2E test",
+        "end-to-end",
+        "browser testing",
+        "automation",
+        "UI testing",
+        "visual testing",
+        "playwright expert",
+        "playwright-expert"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 107,
+        "full": 1895
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qplaywright-expert/SKILL.md",
+      "references": [
+        {
+          "alias": "api-mocking",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/api-mocking.md"
+        },
+        {
+          "alias": "configuration",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/configuration.md"
+        },
+        {
+          "alias": "debugging-flaky",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/debugging-flaky.md"
+        },
+        {
+          "alias": "page-object-model",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/page-object-model.md"
+        },
+        {
+          "alias": "selectors-locators",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/selectors-locators.md"
         }
       ],
       "review": {
@@ -3394,6 +3784,131 @@
       }
     },
     {
+      "name": "Qsecure-code-guardian",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "security",
+      "summary": "Use when implementing authentication/authorization, securing user input, or preventing OWASP Top 10 vulnerabilities — including custom security implementations such as hashing passwords with bcrypt/argon2, sanitizing SQL queries with parameterized statements, configuring CORS/CSP headers, validating input with Zod, and setting up JWT tokens. Invoke for authentication, authorization, input validation, encryption, OWASP Top 10 prevention, secure session management, and security hardening. For pre-built OAuth/SSO integrations or standalone security audits, consider a more specialized skill.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "security",
+        "authentication",
+        "authorization",
+        "encryption",
+        "OWASP",
+        "vulnerability",
+        "secure coding",
+        "password",
+        "JWT",
+        "OAuth",
+        "secure code guardian",
+        "secure-code-guardian"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 149,
+        "full": 2239
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qsecure-code-guardian/SKILL.md",
+      "references": [
+        {
+          "alias": "authentication",
+          "path": "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/authentication.md"
+        },
+        {
+          "alias": "input-validation",
+          "path": "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/input-validation.md"
+        },
+        {
+          "alias": "owasp-prevention",
+          "path": "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/owasp-prevention.md"
+        },
+        {
+          "alias": "security-headers",
+          "path": "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/security-headers.md"
+        },
+        {
+          "alias": "xss-csrf",
+          "path": "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/xss-csrf.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qsecurity-reviewer",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "security",
+      "summary": "Identifies security vulnerabilities, generates structured audit reports with severity ratings, and provides actionable remediation guidance. Use when conducting security audits, reviewing code for vulnerabilities, or analyzing infrastructure security. Invoke for SAST scans, penetration testing, DevSecOps practices, cloud security reviews, dependency audits, secrets scanning, or compliance checks. Produces vulnerability reports, prioritized recommendations, and compliance checklists.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "security review",
+        "vulnerability scan",
+        "SAST",
+        "security audit",
+        "penetration test",
+        "code audit",
+        "security analysis",
+        "infrastructure security",
+        "DevSecOps",
+        "cloud security",
+        "compliance audit",
+        "security reviewer",
+        "security-reviewer"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 122,
+        "full": 2048
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qsecurity-reviewer/SKILL.md",
+      "references": [
+        {
+          "alias": "infrastructure-security",
+          "path": "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/infrastructure-security.md"
+        },
+        {
+          "alias": "penetration-testing",
+          "path": "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/penetration-testing.md"
+        },
+        {
+          "alias": "report-template",
+          "path": "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/report-template.md"
+        },
+        {
+          "alias": "sast-tools",
+          "path": "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/sast-tools.md"
+        },
+        {
+          "alias": "secret-scanning",
+          "path": "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/secret-scanning.md"
+        },
+        {
+          "alias": "vulnerability-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/vulnerability-patterns.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
       "name": "Qshopify-expert",
       "kind": "skill",
       "pack": "core-experts",
@@ -3537,6 +4052,58 @@
         {
           "alias": "streaming-patterns",
           "path": "expert-library/packs/core-experts/skills/Qspark-engineer/references/streaming-patterns.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qspec-miner",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "workflow",
+      "summary": "Reverse-engineering specialist that extracts specifications from existing codebases. Use when working with legacy or undocumented systems, inherited projects, or old codebases with no documentation. Invoke to map code dependencies, generate API documentation from source, identify undocumented business logic, figure out what code does, or create architecture documentation from implementation. Trigger phrases: reverse engineer, old codebase, no docs, no documentation, figure out how this works, inherited project, legacy analysis, code archaeology, undocumented features.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "reverse engineer",
+        "legacy code",
+        "code analysis",
+        "undocumented",
+        "understand codebase",
+        "existing system",
+        "spec miner",
+        "spec-miner"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 144,
+        "full": 1640
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qspec-miner/SKILL.md",
+      "references": [
+        {
+          "alias": "analysis-checklist",
+          "path": "expert-library/packs/core-experts/skills/Qspec-miner/references/analysis-checklist.md"
+        },
+        {
+          "alias": "analysis-process",
+          "path": "expert-library/packs/core-experts/skills/Qspec-miner/references/analysis-process.md"
+        },
+        {
+          "alias": "ears-format",
+          "path": "expert-library/packs/core-experts/skills/Qspec-miner/references/ears-format.md"
+        },
+        {
+          "alias": "specification-template",
+          "path": "expert-library/packs/core-experts/skills/Qspec-miner/references/specification-template.md"
         }
       ],
       "review": {
@@ -3902,6 +4469,163 @@
       }
     },
     {
+      "name": "Qtest-master",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "quality",
+      "summary": "Generates test files, creates mocking strategies, analyzes code coverage, designs test architectures, and produces test plans and defect reports across functional, performance, and security testing disciplines. Use when writing unit tests, integration tests, or E2E tests; creating test strategies or automation frameworks; analyzing coverage gaps; performance testing with k6 or Artillery; security testing with OWASP methods; debugging flaky tests; or working on QA, regression, test automation, quality gates, shift-left testing, or test maintenance.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "test",
+        "testing",
+        "QA",
+        "unit test",
+        "integration test",
+        "E2E",
+        "coverage",
+        "performance test",
+        "security test",
+        "regression",
+        "test strategy",
+        "test automation",
+        "test framework",
+        "quality metrics",
+        "defect",
+        "exploratory",
+        "usability",
+        "accessibility",
+        "localization",
+        "manual testing",
+        "shift-left",
+        "quality gate",
+        "flaky test",
+        "test maintenance",
+        "test master",
+        "test-master"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 139,
+        "full": 2005
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qtest-master/SKILL.md",
+      "references": [
+        {
+          "alias": "automation-frameworks",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/automation-frameworks.md"
+        },
+        {
+          "alias": "e2e-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/e2e-testing.md"
+        },
+        {
+          "alias": "integration-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/integration-testing.md"
+        },
+        {
+          "alias": "performance-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/performance-testing.md"
+        },
+        {
+          "alias": "qa-methodology",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/qa-methodology.md"
+        },
+        {
+          "alias": "security-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/security-testing.md"
+        },
+        {
+          "alias": "tdd-iron-laws",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/tdd-iron-laws.md"
+        },
+        {
+          "alias": "test-reports",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/test-reports.md"
+        },
+        {
+          "alias": "testing-anti-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/testing-anti-patterns.md"
+        },
+        {
+          "alias": "unit-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/unit-testing.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qthe-fool",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "workflow",
+      "summary": "Use when challenging ideas, plans, decisions, or proposals using structured critical reasoning. Invoke to play devil's advocate, run a pre-mortem, red team, or audit evidence and assumptions.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "play the fool",
+        "devil's advocate",
+        "challenge this",
+        "stress test",
+        "poke holes",
+        "what could go wrong",
+        "red team",
+        "pre-mortem",
+        "test my assumptions",
+        "the fool",
+        "the-fool"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 48,
+        "full": 2124
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qthe-fool/SKILL.md",
+      "references": [
+        {
+          "alias": "dialectic-synthesis",
+          "path": "expert-library/packs/core-experts/skills/Qthe-fool/references/dialectic-synthesis.md"
+        },
+        {
+          "alias": "evidence-audit",
+          "path": "expert-library/packs/core-experts/skills/Qthe-fool/references/evidence-audit.md"
+        },
+        {
+          "alias": "mode-selection-guide",
+          "path": "expert-library/packs/core-experts/skills/Qthe-fool/references/mode-selection-guide.md"
+        },
+        {
+          "alias": "pre-mortem-analysis",
+          "path": "expert-library/packs/core-experts/skills/Qthe-fool/references/pre-mortem-analysis.md"
+        },
+        {
+          "alias": "red-team-adversarial",
+          "path": "expert-library/packs/core-experts/skills/Qthe-fool/references/red-team-adversarial.md"
+        },
+        {
+          "alias": "socratic-questioning",
+          "path": "expert-library/packs/core-experts/skills/Qthe-fool/references/socratic-questioning.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
       "name": "Qvisual-qa",
       "kind": "skill",
       "pack": "core-experts",
@@ -4009,6 +4733,99 @@
         {
           "alias": "rolldown-migration",
           "path": "expert-library/packs/core-experts/skills/Qvite/references/rolldown-migration.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qvitest",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "quality",
+      "summary": "Vitest fast unit testing framework powered by Vite with Jest-compatible API. Use when writing tests, mocking, configuring coverage, or working with test filtering and fixtures.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "vitest"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 44,
+        "full": 2151
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qvitest/SKILL.md",
+      "references": [
+        {
+          "alias": "advanced-environments",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/advanced-environments.md"
+        },
+        {
+          "alias": "advanced-projects",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/advanced-projects.md"
+        },
+        {
+          "alias": "advanced-type-testing",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/advanced-type-testing.md"
+        },
+        {
+          "alias": "advanced-vi",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/advanced-vi.md"
+        },
+        {
+          "alias": "core-cli",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/core-cli.md"
+        },
+        {
+          "alias": "core-config",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/core-config.md"
+        },
+        {
+          "alias": "core-describe",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/core-describe.md"
+        },
+        {
+          "alias": "core-expect",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/core-expect.md"
+        },
+        {
+          "alias": "core-hooks",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/core-hooks.md"
+        },
+        {
+          "alias": "core-test-api",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/core-test-api.md"
+        },
+        {
+          "alias": "features-concurrency",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/features-concurrency.md"
+        },
+        {
+          "alias": "features-context",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/features-context.md"
+        },
+        {
+          "alias": "features-coverage",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/features-coverage.md"
+        },
+        {
+          "alias": "features-filtering",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/features-filtering.md"
+        },
+        {
+          "alias": "features-mocking",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/features-mocking.md"
+        },
+        {
+          "alias": "features-snapshots",
+          "path": "expert-library/packs/core-experts/skills/Qvitest/references/features-snapshots.md"
         }
       ],
       "review": {
@@ -4180,62 +4997,6 @@
       }
     },
     {
-      "name": "Qvue-expert-js",
-      "kind": "skill",
-      "pack": "core-experts",
-      "domain": "frontend",
-      "summary": "Creates Vue 3 components, builds vanilla JS composables, configures Vite projects, and sets up routing and state management using JavaScript only — no TypeScript. Generates JSDoc-typed code with @typedef, @param, and @returns annotations for full type coverage without a TS compiler. Use when building Vue 3 applications with JavaScript only (no TypeScript), when projects require JSDoc-based type hints, when migrating from Vue 2 Options API to Composition API in JS, or when teams prefer vanilla JavaScript, .mjs modules, or need quick prototypes without TypeScript setup.",
-      "invocationTriggers": [
-        "When specialized language or framework best practices are needed.",
-        "Vue JavaScript",
-        "Vue without TypeScript",
-        "Vue JSDoc",
-        "Vue JS only",
-        "Vue vanilla JavaScript",
-        ".mjs Vue",
-        "Vue no TS",
-        "vue-expert-js"
-      ],
-      "relatedCoreSkill": "Qrun-task",
-      "recommendedModel": "haiku",
-      "tokenEstimate": {
-        "summary": 144,
-        "full": 1738
-      },
-      "sourcePath": "expert-library/packs/core-experts/skills/Qvue-expert-js/SKILL.md",
-      "references": [
-        {
-          "alias": "component-architecture",
-          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/component-architecture.md"
-        },
-        {
-          "alias": "composables-patterns",
-          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/composables-patterns.md"
-        },
-        {
-          "alias": "jsdoc-typing",
-          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/jsdoc-typing.md"
-        },
-        {
-          "alias": "state-management",
-          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/state-management.md"
-        },
-        {
-          "alias": "testing-patterns",
-          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/testing-patterns.md"
-        }
-      ],
-      "review": {
-        "status": "unreviewed",
-        "lastReviewed": null
-      },
-      "clientSupport": {
-        "claude": "mcp-tool",
-        "codex": "mcp-tool",
-        "gemini": "mcp-tool"
-      }
-    },
-    {
       "name": "Qvue-expert",
       "kind": "skill",
       "pack": "core-experts",
@@ -4290,6 +5051,62 @@
         {
           "alias": "typescript",
           "path": "expert-library/packs/core-experts/skills/Qvue-expert/references/typescript.md"
+        }
+      ],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
+      "name": "Qvue-expert-js",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "frontend",
+      "summary": "Creates Vue 3 components, builds vanilla JS composables, configures Vite projects, and sets up routing and state management using JavaScript only — no TypeScript. Generates JSDoc-typed code with @typedef, @param, and @returns annotations for full type coverage without a TS compiler. Use when building Vue 3 applications with JavaScript only (no TypeScript), when projects require JSDoc-based type hints, when migrating from Vue 2 Options API to Composition API in JS, or when teams prefer vanilla JavaScript, .mjs modules, or need quick prototypes without TypeScript setup.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Vue JavaScript",
+        "Vue without TypeScript",
+        "Vue JSDoc",
+        "Vue JS only",
+        "Vue vanilla JavaScript",
+        ".mjs Vue",
+        "Vue no TS",
+        "vue-expert-js"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 144,
+        "full": 1738
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qvue-expert-js/SKILL.md",
+      "references": [
+        {
+          "alias": "component-architecture",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/component-architecture.md"
+        },
+        {
+          "alias": "composables-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/composables-patterns.md"
+        },
+        {
+          "alias": "jsdoc-typing",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/jsdoc-typing.md"
+        },
+        {
+          "alias": "state-management",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/state-management.md"
+        },
+        {
+          "alias": "testing-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert-js/references/testing-patterns.md"
         }
       ],
       "review": {
@@ -4419,5 +5236,6 @@
         "gemini": "mcp-tool"
       }
     }
-  ]
+  ],
+  "totalExperts": 91
 }

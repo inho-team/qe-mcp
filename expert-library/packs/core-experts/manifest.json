@@ -343,6 +343,95 @@
       }
     },
     {
+      "name": "Qcode-documenter",
+      "kind": "skill",
+      "domain": "quality",
+      "originalPath": "skills/coding-experts/quality/Qcode-documenter/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qcode-documenter/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qcode-documenter/references/api-docs-fastapi-django.md",
+        "expert-library/packs/core-experts/skills/Qcode-documenter/references/api-docs-nestjs-express.md",
+        "expert-library/packs/core-experts/skills/Qcode-documenter/references/coverage-reports.md",
+        "expert-library/packs/core-experts/skills/Qcode-documenter/references/documentation-systems.md",
+        "expert-library/packs/core-experts/skills/Qcode-documenter/references/interactive-api-docs.md",
+        "expert-library/packs/core-experts/skills/Qcode-documenter/references/python-docstrings.md",
+        "expert-library/packs/core-experts/skills/Qcode-documenter/references/typescript-jsdoc.md",
+        "expert-library/packs/core-experts/skills/Qcode-documenter/references/user-guides-tutorials.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1db31e224ae8361a797796476b4f4ce09fdc7d5773e7866fcffcf5656e643e38"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "documentation",
+          "docstrings",
+          "OpenAPI",
+          "Swagger",
+          "JSDoc",
+          "comments",
+          "API docs",
+          "tutorials",
+          "user guides",
+          "doc site",
+          "code documenter",
+          "code-documenter"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
+      "name": "Qcode-reviewer",
+      "kind": "skill",
+      "domain": "quality",
+      "originalPath": "skills/coding-experts/quality/Qcode-reviewer/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qcode-reviewer/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qcode-reviewer/references/common-issues.md",
+        "expert-library/packs/core-experts/skills/Qcode-reviewer/references/feedback-examples.md",
+        "expert-library/packs/core-experts/skills/Qcode-reviewer/references/receiving-feedback.md",
+        "expert-library/packs/core-experts/skills/Qcode-reviewer/references/report-template.md",
+        "expert-library/packs/core-experts/skills/Qcode-reviewer/references/review-checklist.md",
+        "expert-library/packs/core-experts/skills/Qcode-reviewer/references/spec-compliance-review.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "a51e51f1a09caa42ec7842ba67e89d50c675f558038f17d15c43809c0703a944"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "code review",
+          "PR review",
+          "pull request",
+          "review code",
+          "code quality",
+          "code reviewer",
+          "code-reviewer"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
       "name": "Qcontent-research-writer",
       "kind": "skill",
       "domain": "language",
@@ -512,6 +601,87 @@
       }
     },
     {
+      "name": "Qdebugging-wizard",
+      "kind": "skill",
+      "domain": "quality",
+      "originalPath": "skills/coding-experts/quality/Qdebugging-wizard/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qdebugging-wizard/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/common-patterns.md",
+        "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/debugging-tools.md",
+        "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/quick-fixes.md",
+        "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/strategies.md",
+        "expert-library/packs/core-experts/skills/Qdebugging-wizard/references/systematic-debugging.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ce898fea262613fa2607cd3f661d04f2053f5101e4eb16fe48367646a813ccaa"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "debug",
+          "error",
+          "bug",
+          "exception",
+          "traceback",
+          "stack trace",
+          "troubleshoot",
+          "not working",
+          "crash",
+          "fix issue",
+          "debugging wizard",
+          "debugging-wizard"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
+      "name": "Qdesign",
+      "kind": "skill",
+      "domain": "frontend",
+      "originalPath": "skills-optional/Qdesign/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qdesign/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qdesign/lib/extract-styles.js",
+        "expert-library/packs/core-experts/skills/Qdesign/lib/normalize-tokens.mjs",
+        "expert-library/packs/core-experts/skills/Qdesign/lib/validate-design-md.mjs"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7dbc35b0197e2616f3799bfa4cc096a7fcdba0c22d6b2a67bd5933146299d6eb"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When a project needs a design system defined before frontend work begins. Trigger phrases: 'create design system'",
+          "'define design spec'",
+          "'set up DESIGN.md'",
+          "'design foundation'",
+          "'visual identity'.",
+          "design"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
       "name": "Qdesign-audit",
       "kind": "skill",
       "domain": "frontend",
@@ -565,42 +735,6 @@
           "'pitch deck and landing page'",
           "'full design package'.",
           "design-studio"
-        ],
-        "relatedCoreSkill": "Qrun-task"
-      },
-      "rollback": {
-        "action": "remove-expert-copy-only",
-        "note": "Do not restore to skills/ during rollback."
-      }
-    },
-    {
-      "name": "Qdesign",
-      "kind": "skill",
-      "domain": "frontend",
-      "originalPath": "skills-optional/Qdesign/SKILL.md",
-      "expertPath": "expert-library/packs/core-experts/skills/Qdesign/SKILL.md",
-      "relatedPaths": [
-        "expert-library/packs/core-experts/skills/Qdesign/lib/extract-styles.js",
-        "expert-library/packs/core-experts/skills/Qdesign/lib/normalize-tokens.mjs",
-        "expert-library/packs/core-experts/skills/Qdesign/lib/validate-design-md.mjs"
-      ],
-      "checksum": {
-        "algorithm": "sha256",
-        "value": "7dbc35b0197e2616f3799bfa4cc096a7fcdba0c22d6b2a67bd5933146299d6eb"
-      },
-      "review": {
-        "status": "unreviewed",
-        "lastReviewed": null,
-        "reviewer": null
-      },
-      "routing": {
-        "triggers": [
-          "When a project needs a design system defined before frontend work begins. Trigger phrases: 'create design system'",
-          "'define design spec'",
-          "'set up DESIGN.md'",
-          "'design foundation'",
-          "'visual identity'.",
-          "design"
         ],
         "relatedCoreSkill": "Qrun-task"
       },
@@ -824,6 +958,47 @@
       }
     },
     {
+      "name": "Qfeature-forge",
+      "kind": "skill",
+      "domain": "workflow",
+      "originalPath": "skills/coding-experts/quality/Qfeature-forge/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qfeature-forge/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qfeature-forge/references/acceptance-criteria.md",
+        "expert-library/packs/core-experts/skills/Qfeature-forge/references/ears-syntax.md",
+        "expert-library/packs/core-experts/skills/Qfeature-forge/references/interview-questions.md",
+        "expert-library/packs/core-experts/skills/Qfeature-forge/references/pre-discovery-subagents.md",
+        "expert-library/packs/core-experts/skills/Qfeature-forge/references/specification-template.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "3b93d08cbad6e2c734f35ca5c1ff3e4ba5f96325cd8a2364a373cb9fe9754810"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "requirements",
+          "specification",
+          "feature definition",
+          "user stories",
+          "EARS",
+          "planning",
+          "feature forge",
+          "feature-forge"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
       "name": "Qfine-tuning-expert",
       "kind": "skill",
       "domain": "data-ai",
@@ -910,6 +1085,62 @@
       }
     },
     {
+      "name": "Qfullstack-guardian",
+      "kind": "skill",
+      "domain": "security",
+      "originalPath": "skills/coding-experts/quality/Qfullstack-guardian/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qfullstack-guardian/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/api-design-standards.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/architecture-decisions.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/backend-patterns.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/common-patterns.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/deliverables-checklist.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/design-template.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/error-handling.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/frontend-patterns.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/integration-patterns.md",
+        "expert-library/packs/core-experts/skills/Qfullstack-guardian/references/security-checklist.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "614cc253654dae714e184fc59ea77924969bf894b76194f92de3a76b67bc2570"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "fullstack",
+          "implement feature",
+          "build feature",
+          "create API",
+          "frontend and backend",
+          "full stack",
+          "new feature",
+          "implement",
+          "microservices",
+          "websocket",
+          "real-time",
+          "deployment pipeline",
+          "monorepo",
+          "architecture decision",
+          "technology selection",
+          "end-to-end",
+          "fullstack guardian",
+          "fullstack-guardian"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
       "name": "Qgame-developer",
       "kind": "skill",
       "domain": "quality-design",
@@ -944,49 +1175,6 @@
           "shader programming",
           "game AI",
           "game-developer"
-        ],
-        "relatedCoreSkill": "Qrun-task"
-      },
-      "rollback": {
-        "action": "remove-expert-copy-only",
-        "note": "Do not restore to skills/ during rollback."
-      }
-    },
-    {
-      "name": "Qgolang-pro",
-      "kind": "skill",
-      "domain": "language",
-      "originalPath": "skills-optional/Qgolang-pro/SKILL.md",
-      "expertPath": "expert-library/packs/core-experts/skills/Qgolang-pro/SKILL.md",
-      "relatedPaths": [
-        "expert-library/packs/core-experts/skills/Qgolang-pro/references/concurrency.md",
-        "expert-library/packs/core-experts/skills/Qgolang-pro/references/generics.md",
-        "expert-library/packs/core-experts/skills/Qgolang-pro/references/interfaces.md",
-        "expert-library/packs/core-experts/skills/Qgolang-pro/references/project-structure.md",
-        "expert-library/packs/core-experts/skills/Qgolang-pro/references/testing.md"
-      ],
-      "checksum": {
-        "algorithm": "sha256",
-        "value": "668403c83c4a5909c2c20380d2eda0f94977f29a3b624f27ac9fbc0ad6b8e68c"
-      },
-      "review": {
-        "status": "unreviewed",
-        "lastReviewed": null,
-        "reviewer": null
-      },
-      "routing": {
-        "triggers": [
-          "When specialized language or framework best practices are needed.",
-          "Go",
-          "Golang",
-          "goroutines",
-          "channels",
-          "gRPC",
-          "microservices Go",
-          "Go generics",
-          "concurrent programming",
-          "Go interfaces",
-          "golang-pro"
         ],
         "relatedCoreSkill": "Qrun-task"
       },
@@ -1031,6 +1219,49 @@
         "triggers": [
           "When specialized language or framework best practices are needed.",
           "golang"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
+      "name": "Qgolang-pro",
+      "kind": "skill",
+      "domain": "language",
+      "originalPath": "skills-optional/Qgolang-pro/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qgolang-pro/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qgolang-pro/references/concurrency.md",
+        "expert-library/packs/core-experts/skills/Qgolang-pro/references/generics.md",
+        "expert-library/packs/core-experts/skills/Qgolang-pro/references/interfaces.md",
+        "expert-library/packs/core-experts/skills/Qgolang-pro/references/project-structure.md",
+        "expert-library/packs/core-experts/skills/Qgolang-pro/references/testing.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "668403c83c4a5909c2c20380d2eda0f94977f29a3b624f27ac9fbc0ad6b8e68c"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "Go",
+          "Golang",
+          "goroutines",
+          "channels",
+          "gRPC",
+          "microservices Go",
+          "Go generics",
+          "concurrent programming",
+          "Go interfaces",
+          "golang-pro"
         ],
         "relatedCoreSkill": "Qrun-task"
       },
@@ -1744,6 +1975,48 @@
           "Eloquent",
           "Doctrine",
           "php-pro"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
+      "name": "Qplaywright-expert",
+      "kind": "skill",
+      "domain": "quality",
+      "originalPath": "skills/coding-experts/quality/Qplaywright-expert/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qplaywright-expert/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qplaywright-expert/references/api-mocking.md",
+        "expert-library/packs/core-experts/skills/Qplaywright-expert/references/configuration.md",
+        "expert-library/packs/core-experts/skills/Qplaywright-expert/references/debugging-flaky.md",
+        "expert-library/packs/core-experts/skills/Qplaywright-expert/references/page-object-model.md",
+        "expert-library/packs/core-experts/skills/Qplaywright-expert/references/selectors-locators.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e7c78044e915fd2f95d9e08a4a60e4640daac1045c0036962332f81e34f9227e"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "Playwright",
+          "E2E test",
+          "end-to-end",
+          "browser testing",
+          "automation",
+          "UI testing",
+          "visual testing",
+          "playwright expert",
+          "playwright-expert"
         ],
         "relatedCoreSkill": "Qrun-task"
       },
@@ -2476,6 +2749,98 @@
       }
     },
     {
+      "name": "Qsecure-code-guardian",
+      "kind": "skill",
+      "domain": "security",
+      "originalPath": "skills/coding-experts/quality/Qsecure-code-guardian/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qsecure-code-guardian/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/authentication.md",
+        "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/input-validation.md",
+        "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/owasp-prevention.md",
+        "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/security-headers.md",
+        "expert-library/packs/core-experts/skills/Qsecure-code-guardian/references/xss-csrf.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bde1a0c12dec8cc0a8f33a7fb6c2504004ede606e7843933c7c5671f7d15c7b2"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "security",
+          "authentication",
+          "authorization",
+          "encryption",
+          "OWASP",
+          "vulnerability",
+          "secure coding",
+          "password",
+          "JWT",
+          "OAuth",
+          "secure code guardian",
+          "secure-code-guardian"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
+      "name": "Qsecurity-reviewer",
+      "kind": "skill",
+      "domain": "security",
+      "originalPath": "skills/coding-experts/quality/Qsecurity-reviewer/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qsecurity-reviewer/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/infrastructure-security.md",
+        "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/penetration-testing.md",
+        "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/report-template.md",
+        "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/sast-tools.md",
+        "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/secret-scanning.md",
+        "expert-library/packs/core-experts/skills/Qsecurity-reviewer/references/vulnerability-patterns.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d95e0fee609ba6f1895b56b568332e45d8a32e5598adc0531e6e6f68d945f48b"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "security review",
+          "vulnerability scan",
+          "SAST",
+          "security audit",
+          "penetration test",
+          "code audit",
+          "security analysis",
+          "infrastructure security",
+          "DevSecOps",
+          "cloud security",
+          "compliance audit",
+          "security reviewer",
+          "security-reviewer"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
       "name": "Qshopify-expert",
       "kind": "skill",
       "domain": "infra",
@@ -2593,6 +2958,46 @@
           "structured streaming",
           "data partitioning",
           "Spark performance"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
+      "name": "Qspec-miner",
+      "kind": "skill",
+      "domain": "workflow",
+      "originalPath": "skills/coding-experts/quality/Qspec-miner/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qspec-miner/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qspec-miner/references/analysis-checklist.md",
+        "expert-library/packs/core-experts/skills/Qspec-miner/references/analysis-process.md",
+        "expert-library/packs/core-experts/skills/Qspec-miner/references/ears-format.md",
+        "expert-library/packs/core-experts/skills/Qspec-miner/references/specification-template.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "2326431ce280f57d7f9b6c25e30f59d24332347568e6f2d09fa88ea254870290"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "reverse engineer",
+          "legacy code",
+          "code analysis",
+          "undocumented",
+          "understand codebase",
+          "existing system",
+          "spec miner",
+          "spec-miner"
         ],
         "relatedCoreSkill": "Qrun-task"
       },
@@ -2879,6 +3284,115 @@
       }
     },
     {
+      "name": "Qtest-master",
+      "kind": "skill",
+      "domain": "quality",
+      "originalPath": "skills/coding-experts/quality/Qtest-master/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qtest-master/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qtest-master/references/automation-frameworks.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/e2e-testing.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/integration-testing.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/performance-testing.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/qa-methodology.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/security-testing.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/tdd-iron-laws.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/test-reports.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/testing-anti-patterns.md",
+        "expert-library/packs/core-experts/skills/Qtest-master/references/unit-testing.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b6a015369315c6237d6251c7f79edcad1b4419639a61b63df0fb528c5964f539"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "test",
+          "testing",
+          "QA",
+          "unit test",
+          "integration test",
+          "E2E",
+          "coverage",
+          "performance test",
+          "security test",
+          "regression",
+          "test strategy",
+          "test automation",
+          "test framework",
+          "quality metrics",
+          "defect",
+          "exploratory",
+          "usability",
+          "accessibility",
+          "localization",
+          "manual testing",
+          "shift-left",
+          "quality gate",
+          "flaky test",
+          "test maintenance",
+          "test master",
+          "test-master"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
+      "name": "Qthe-fool",
+      "kind": "skill",
+      "domain": "workflow",
+      "originalPath": "skills/coding-experts/quality/Qthe-fool/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qthe-fool/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qthe-fool/references/dialectic-synthesis.md",
+        "expert-library/packs/core-experts/skills/Qthe-fool/references/evidence-audit.md",
+        "expert-library/packs/core-experts/skills/Qthe-fool/references/mode-selection-guide.md",
+        "expert-library/packs/core-experts/skills/Qthe-fool/references/pre-mortem-analysis.md",
+        "expert-library/packs/core-experts/skills/Qthe-fool/references/red-team-adversarial.md",
+        "expert-library/packs/core-experts/skills/Qthe-fool/references/socratic-questioning.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "642ab4326ecd542e873458cf65be4c444eeaf6f9488fbbe8a9e31daabb3fe9a1"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "play the fool",
+          "devil's advocate",
+          "challenge this",
+          "stress test",
+          "poke holes",
+          "what could go wrong",
+          "red team",
+          "pre-mortem",
+          "test my assumptions",
+          "the fool",
+          "the-fool"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
       "name": "Qvisual-qa",
       "kind": "skill",
       "domain": "frontend",
@@ -2978,6 +3492,52 @@
       }
     },
     {
+      "name": "Qvitest",
+      "kind": "skill",
+      "domain": "quality",
+      "originalPath": "skills/coding-experts/quality/Qvitest/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qvitest/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qvitest/GENERATION.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/advanced-environments.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/advanced-projects.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/advanced-type-testing.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/advanced-vi.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/core-cli.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/core-config.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/core-describe.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/core-expect.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/core-hooks.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/core-test-api.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/features-concurrency.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/features-context.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/features-coverage.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/features-filtering.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/features-mocking.md",
+        "expert-library/packs/core-experts/skills/Qvitest/references/features-snapshots.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "68bee401d15f47869c5a8a19f1613a1f8c277b0cfbee7ed4c0a006250dc3e40a"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "vitest"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
       "name": "Qvlm-specialist",
       "kind": "skill",
       "domain": "data-ai",
@@ -3064,47 +3624,6 @@
       }
     },
     {
-      "name": "Qvue-expert-js",
-      "kind": "skill",
-      "domain": "frontend",
-      "originalPath": "skills-optional/Qvue-expert-js/SKILL.md",
-      "expertPath": "expert-library/packs/core-experts/skills/Qvue-expert-js/SKILL.md",
-      "relatedPaths": [
-        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/component-architecture.md",
-        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/composables-patterns.md",
-        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/jsdoc-typing.md",
-        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/state-management.md",
-        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/testing-patterns.md"
-      ],
-      "checksum": {
-        "algorithm": "sha256",
-        "value": "b661eea2861fb9da2eb69f58c3ff2153ac1ffa089d28cf5374d9546e11ae4609"
-      },
-      "review": {
-        "status": "unreviewed",
-        "lastReviewed": null,
-        "reviewer": null
-      },
-      "routing": {
-        "triggers": [
-          "When specialized language or framework best practices are needed.",
-          "Vue JavaScript",
-          "Vue without TypeScript",
-          "Vue JSDoc",
-          "Vue JS only",
-          "Vue vanilla JavaScript",
-          ".mjs Vue",
-          "Vue no TS",
-          "vue-expert-js"
-        ],
-        "relatedCoreSkill": "Qrun-task"
-      },
-      "rollback": {
-        "action": "remove-expert-copy-only",
-        "note": "Do not restore to skills/ during rollback."
-      }
-    },
-    {
       "name": "Qvue-expert",
       "kind": "skill",
       "domain": "frontend",
@@ -3142,6 +3661,47 @@
           "Vite Vue",
           "Quasar",
           "Capacitor"
+        ],
+        "relatedCoreSkill": "Qrun-task"
+      },
+      "rollback": {
+        "action": "remove-expert-copy-only",
+        "note": "Do not restore to skills/ during rollback."
+      }
+    },
+    {
+      "name": "Qvue-expert-js",
+      "kind": "skill",
+      "domain": "frontend",
+      "originalPath": "skills-optional/Qvue-expert-js/SKILL.md",
+      "expertPath": "expert-library/packs/core-experts/skills/Qvue-expert-js/SKILL.md",
+      "relatedPaths": [
+        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/component-architecture.md",
+        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/composables-patterns.md",
+        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/jsdoc-typing.md",
+        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/state-management.md",
+        "expert-library/packs/core-experts/skills/Qvue-expert-js/references/testing-patterns.md"
+      ],
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b661eea2861fb9da2eb69f58c3ff2153ac1ffa089d28cf5374d9546e11ae4609"
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null,
+        "reviewer": null
+      },
+      "routing": {
+        "triggers": [
+          "When specialized language or framework best practices are needed.",
+          "Vue JavaScript",
+          "Vue without TypeScript",
+          "Vue JSDoc",
+          "Vue JS only",
+          "Vue vanilla JavaScript",
+          ".mjs Vue",
+          "Vue no TS",
+          "vue-expert-js"
         ],
         "relatedCoreSkill": "Qrun-task"
       },
@@ -3237,5 +3797,7 @@
         "note": "Do not restore to skills/ during rollback."
       }
     }
-  ]
+  ],
+  "generatedAt": "2026-07-01T01:53:17.555Z",
+  "assetCount": 91
 }
