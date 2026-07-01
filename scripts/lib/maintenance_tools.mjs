@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import { spawn } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
-import { dirname, resolve } from 'path';
+import { dirname, isAbsolute, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
@@ -427,7 +427,8 @@ function validateRecoverablePaths(paths, args = {}) {
   const allowedRoot = resolve(workspaceRoot, '.qe', 'state', 'mcp-maintenance');
   for (const path of paths) {
     const resolved = resolve(path);
-    if (!(resolved === allowedRoot || resolved.startsWith(`${allowedRoot}/`))) {
+    const rel = relative(allowedRoot, resolved);
+    if (rel.startsWith('..') || isAbsolute(rel)) {
       return maintenanceError('policy_denied', `recoverable-write path outside allowed state root: ${path}`);
     }
   }
