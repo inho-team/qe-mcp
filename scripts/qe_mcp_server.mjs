@@ -26,7 +26,7 @@ import {
 } from './lib/supervisor_tools.mjs';
 
 const PROTOCOL_VERSION = '2025-03-26';
-const SERVER_VERSION = '0.2.3';
+const SERVER_VERSION = '0.2.4';
 let activeRunnerCount = 0;
 const FALLBACK_AGENT_TOOL_SCHEMAS = {
   qe_run_codex_agent: {
