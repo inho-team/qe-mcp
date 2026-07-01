@@ -559,6 +559,10 @@ function assertAgentRunResultShape(result, label) {
   }
 }
 
+function isMaintenanceStatePath(path) {
+  return String(path).replace(/\\/g, '/').includes('/.qe/state/mcp-maintenance/');
+}
+
 // Runs passive MCP regression checks and active runner negative-path checks.
 async function main() {
   await runRunnerModuleTests();
@@ -835,7 +839,7 @@ async function main() {
       recoverableDryRun.result?.structuredContent?.approval_required !== true ||
       !recoverableFingerprint ||
       !recoverableDryRun.result?.structuredContent?.changed_paths_preview?.every((path) =>
-        String(path).includes('/.qe/state/mcp-maintenance/')
+        isMaintenanceStatePath(path)
       )
     ) {
       throw new Error('qe_run_maintenance_job recoverable dry-run preview failed');
@@ -857,7 +861,7 @@ async function main() {
       recoverableApproved.result?.structuredContent?.approval_id !== recoverableFingerprint ||
       !recoverableApproved.result?.structuredContent?.recovery_manifest?.entries?.length ||
       !recoverableApproved.result?.structuredContent?.changed_paths?.every((path) =>
-        String(path).includes('/.qe/state/mcp-maintenance/')
+        isMaintenanceStatePath(path)
       )
     ) {
       throw new Error('qe_run_maintenance_job approved recoverable-write failed');
