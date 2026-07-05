@@ -2,7 +2,6 @@
 
 import {
   buildExpertPrompt,
-  listExpertPacks,
   listExpertResources,
   readExpert,
   readExpertResource,
@@ -10,24 +9,7 @@ import {
   recommendExpert,
   searchExperts,
 } from './lib/qe_expert_library.mjs';
-import {
-  buildMaintenanceToolSchemas,
-  getMaintenanceJobLog,
-  getMaintenanceJobStatus,
-  listMaintenanceJobs,
-  runMaintenanceJob,
-} from './lib/maintenance_tools.mjs';
-import {
-  ackSupervisorEvent,
-  buildSupervisorToolSchemas,
-  getSupervisorStatus,
-  listSupervisorEvents,
-  listSupervisorSpecs,
-  runMonitorsOnce,
-} from './lib/supervisor_tools.mjs';
 import { getAgentRunProjection } from './lib/agent_engine_delegation.mjs';
-import { createSupervisorDaemon, isDaemonEnabled } from './lib/supervisor_daemon.mjs';
-import { join, resolve } from 'path';
 
 const PROTOCOL_VERSION = '2025-03-26';
 const SERVER_VERSION = '0.2.5';
@@ -172,8 +154,6 @@ const AGENT_TOOL_HELP = [
     recursion: 'Safe to call during planning because it does not recurse into other agents.',
   },
 ];
-const MAINTENANCE_TOOL_SCHEMAS = buildMaintenanceToolSchemas();
-const SUPERVISOR_TOOL_SCHEMAS = buildSupervisorToolSchemas();
 const EXPOSE_RESOURCES = process.env.QE_MCP_EXPOSE_RESOURCES === '1';
 const EXPOSE_PROMPTS = process.env.QE_MCP_EXPOSE_PROMPTS === '1';
 
@@ -445,7 +425,8 @@ function listTools() {
     },
     {
       name: 'qe_read_expert',
-      description: 'Read one QE expert by name. Does not accept raw file paths.',
+      description:
+        'Read one QE expert by name. Does not accept raw file paths. With format:"prompt" it returns a bounded prompt payload that applies the expert to a task (task/mode apply here).',
       inputSchema: {
         type: 'object',
         required: ['name'],
@@ -453,6 +434,9 @@ function listTools() {
           name: { type: 'string' },
           includeReferences: { type: 'boolean' },
           maxBytes: { type: 'integer', minimum: 200, maximum: 24000 },
+          format: { type: 'string', enum: ['raw', 'prompt'] },
+          task: { type: 'string' },
+          mode: { type: 'string', enum: ['apply', 'review', 'plan'] },
         },
       },
     },
@@ -467,28 +451,6 @@ function listTools() {
           reference: { type: 'string' },
           maxBytes: { type: 'integer', minimum: 200, maximum: 24000 },
         },
-      },
-    },
-    {
-      name: 'qe_expert_prompt',
-      description: 'Build a bounded prompt payload that applies a named QE expert to a task.',
-      inputSchema: {
-        type: 'object',
-        required: ['expert'],
-        properties: {
-          expert: { type: 'string' },
-          task: { type: 'string' },
-          mode: { type: 'string', enum: ['apply', 'review', 'plan'] },
-          maxBytes: { type: 'integer', minimum: 200, maximum: 24000 },
-        },
-      },
-    },
-    {
-      name: 'qe_expert_library_help',
-      description: 'Return a compact help payload for the QE expert-library MCP server.',
-      inputSchema: {
-        type: 'object',
-        properties: {},
       },
     },
     {
@@ -527,54 +489,6 @@ function listTools() {
         'Read a bounded redacted lifecycle projection for a delegated run by run_id. Side effects: none. Returns direction, decision, transitions, and compact output metadata only.',
       inputSchema: agentToolSchemas.qe_agent_run_read,
     },
-    {
-      name: 'qe_list_maintenance_jobs',
-      description:
-        'List bounded QE maintenance jobs and their permission classes. Side effects: none. Scheduling remains external; this tool never starts timers or background daemons.',
-      inputSchema: MAINTENANCE_TOOL_SCHEMAS.qe_list_maintenance_jobs,
-    },
-    {
-      name: 'qe_run_maintenance_job',
-      description:
-        'Dry-run or run-once a predefined QE maintenance job. Side effects: dry-run is report-only; run-once is limited to read-only/report-only predefined jobs. Source/config writes, secret/env access, runner delegation, recursion, and internal scheduling are denied.',
-      inputSchema: MAINTENANCE_TOOL_SCHEMAS.qe_run_maintenance_job,
-    },
-    {
-      name: 'qe_get_maintenance_job_status',
-      description:
-        'Read recorded QE maintenance job/run status. Side effects: none. Returns state written by explicit run-once calls.',
-      inputSchema: MAINTENANCE_TOOL_SCHEMAS.qe_get_maintenance_job_status,
-    },
-    {
-      name: 'qe_get_maintenance_job_log',
-      description:
-        'Read a bounded slice of a QE maintenance run log. Side effects: none. Requires a run_id.',
-      inputSchema: MAINTENANCE_TOOL_SCHEMAS.qe_get_maintenance_job_log,
-    },
-    {
-      name: 'qe_supervisor_status',
-      description:
-        'Read bounded QE supervisor status projection. Side effects: none. Scheduling remains external; this tool never starts timers or background daemons.',
-      inputSchema: SUPERVISOR_TOOL_SCHEMAS.qe_supervisor_status,
-    },
-    {
-      name: 'qe_supervisor_events',
-      description:
-        'Read bounded QE supervisor events with severity and ack filters. Side effects: none; raw log injection is capped and preview-only.',
-      inputSchema: SUPERVISOR_TOOL_SCHEMAS.qe_supervisor_events,
-    },
-    {
-      name: 'qe_supervisor_ack',
-      description:
-        'Acknowledge one QE supervisor event by event_id. Side effects: writes ack state only under documented QE supervisor state paths.',
-      inputSchema: SUPERVISOR_TOOL_SCHEMAS.qe_supervisor_ack,
-    },
-    {
-      name: 'qe_supervisor_specs',
-      description:
-        'List bounded QE supervisor monitor specs. Side effects: none. Monitor execution and scheduling remain external.',
-      inputSchema: SUPERVISOR_TOOL_SCHEMAS.qe_supervisor_specs,
-    },
   ];
 }
 
@@ -603,25 +517,16 @@ async function callTool(name, args = {}) {
   }
 
   if (name === 'qe_read_expert') {
+    if (args.format === 'prompt') {
+      return toolResponse(
+        buildExpertPrompt({ expert: args.name, task: args.task, mode: args.mode, maxBytes: args.maxBytes }),
+      );
+    }
     return toolResponse(readExpert(args));
   }
 
   if (name === 'qe_read_methodology') {
     return toolResponse(readMethodology(args));
-  }
-
-  if (name === 'qe_expert_prompt') {
-    return toolResponse(buildExpertPrompt(args));
-  }
-
-  if (name === 'qe_expert_library_help') {
-    return toolResponse({
-      workflow: ['qe_search_experts', 'qe_recommend_expert', 'qe_read_expert or qe_expert_prompt'],
-      resources: ['qe://experts/catalog', 'qe://experts/<name>', 'qe://expert-packs/<pack>'],
-      prompts: ['qe-use-expert', 'qe-review-with-expert', 'qe-plan-with-expert'],
-      packs: listExpertPacks().packs,
-      note: 'This server exposes passive local expert guidance. Verify current APIs before implementation.',
-    });
   }
 
   if (name === 'qe_run_codex_agent') {
@@ -662,38 +567,6 @@ async function callTool(name, args = {}) {
       includeTransitions: args.include_transitions !== false,
     });
     return toolResponse(projection);
-  }
-
-  if (name === 'qe_list_maintenance_jobs') {
-    return toolResponse(listMaintenanceJobs(args));
-  }
-
-  if (name === 'qe_run_maintenance_job') {
-    return toolResponse(await runMaintenanceJob(args));
-  }
-
-  if (name === 'qe_get_maintenance_job_status') {
-    return toolResponse(getMaintenanceJobStatus(args));
-  }
-
-  if (name === 'qe_get_maintenance_job_log') {
-    return toolResponse(getMaintenanceJobLog(args));
-  }
-
-  if (name === 'qe_supervisor_status') {
-    return toolResponse(getSupervisorStatus(args));
-  }
-
-  if (name === 'qe_supervisor_events') {
-    return toolResponse(listSupervisorEvents(args));
-  }
-
-  if (name === 'qe_supervisor_ack') {
-    return toolResponse(ackSupervisorEvent(args));
-  }
-
-  if (name === 'qe_supervisor_specs') {
-    return toolResponse(listSupervisorSpecs(args));
   }
 
   throw new Error(`Unsupported tool: ${name}`);
@@ -842,27 +715,6 @@ function parseAndHandleRequest(payload) {
   } catch (error) {
     sendError(null, error);
   }
-}
-
-// --- Opt-in resident supervisor event producer (contract D032) ---
-// Inert unless QE_MCP_SUPERVISOR_DAEMON=on. A single-producer lock guarantees at
-// most one instance drives the loop across per-session server spawns; graceful
-// shutdown releases the lock so a peer can take over.
-const supervisorDaemon = isDaemonEnabled()
-  ? createSupervisorDaemon({
-      supervisorRoot: join(resolve(process.cwd()), '.qe', 'state', 'supervisor'),
-      runMonitors: () => runMonitorsOnce({ workspace_root: process.cwd() }),
-    })
-  : null;
-if (supervisorDaemon) {
-  supervisorDaemon.start();
-  const stopDaemon = () => {
-    try { supervisorDaemon.stop(); } catch { /* best-effort */ }
-  };
-  process.stdin.on('end', stopDaemon);
-  process.stdin.on('close', stopDaemon);
-  process.on('SIGTERM', () => { stopDaemon(); process.exit(0); });
-  process.on('SIGINT', () => { stopDaemon(); process.exit(0); });
 }
 
 let buffer = Buffer.alloc(0);
