@@ -1,0 +1,6 @@
+# QE Framework / client-local state
+.claude/settings-local.json
+.qe/
+TASK_REQUEST_*.md
+VERIFY_CHECKLIST_*.md
+ANALYSIS_*.md
