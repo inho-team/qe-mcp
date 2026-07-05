@@ -4,3 +4,6 @@
 TASK_REQUEST_*.md
 VERIFY_CHECKLIST_*.md
 ANALYSIS_*.md
+
+# QE shadow-git snapshot store (never commit snapshot internals to the real repo)
+.qe/.snapshots/
