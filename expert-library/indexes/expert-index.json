@@ -611,6 +611,44 @@
       }
     },
     {
+      "name": "Qwriting-clearly",
+      "kind": "skill",
+      "pack": "core-experts",
+      "domain": "language",
+      "summary": "Refines text for clarity and conciseness using Strunk's principles, and removes AI-generated writing patterns. Use when writing or polishing documentation, commit messages, error messages, reports, or UI text, or when text sounds robotic, overly formal, or AI-like.",
+      "invocationTriggers": [
+        "When improving prose or documentation clarity",
+        "humanizing text",
+        "or removing AI-generated writing patterns.",
+        "writing clarity",
+        "concise writing",
+        "humanize text",
+        "remove AI patterns",
+        "de-AI",
+        "documentation polish",
+        "commit message polish",
+        "UI copy",
+        "error messages"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 81,
+        "full": 1666
+      },
+      "sourcePath": "expert-library/packs/core-experts/skills/Qwriting-clearly/SKILL.md",
+      "references": [],
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      }
+    },
+    {
       "name": "Qcpp-pro",
       "kind": "skill",
       "pack": "core-experts",
@@ -5237,5 +5275,5 @@
       }
     }
   ],
-  "totalExperts": 91
+  "totalExperts": 92
 }
