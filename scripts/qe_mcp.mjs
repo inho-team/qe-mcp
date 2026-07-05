@@ -17,6 +17,11 @@ import {
   listSupervisorSpecs,
   planSupervisorInstall,
 } from './lib/supervisor_tools.mjs';
+import {
+  readExpert,
+  recommendExpert,
+  searchExperts,
+} from './lib/qe_expert_library.mjs';
 
 function printUsage() {
   console.log(`Usage:
@@ -28,6 +33,9 @@ function printUsage() {
   qe-mcp supervisor ack <event_id> [--workspace path] [--global] [--actor name] [--json]
   qe-mcp supervisor specs [--monitor-id id] [--json]
   qe-mcp supervisor install --dry-run [--json]
+  qe-mcp expert search <query...> [--limit n] [--json]
+  qe-mcp expert recommend <task...> [--client name] [--limit n] [--json]
+  qe-mcp expert read <name> [--json]
 
 Notes:
   - The registry is global by default: ~/.qe/mcp/registry.json
@@ -245,6 +253,70 @@ async function main() {
       return;
     }
     throw new Error(`Unknown supervisor command: ${subcommand}`);
+  }
+
+  if (command === 'expert') {
+    const subcommand = positionals[1];
+
+    if (subcommand === 'search') {
+      const query = positionals.slice(2).join(' ').trim();
+      if (!query) {
+        console.error('expert search requires a <query>');
+        process.exitCode = 1;
+        return;
+      }
+      const result = searchExperts({ query, limit: options.limit });
+      if (result.error) {
+        console.error(result.error);
+        process.exitCode = 1;
+        return;
+      }
+      printJsonOrText(result, options.json, (payload) =>
+        payload.results
+          .map((expert) => [expert.name, expert.domain, expert.summary].filter(Boolean).join(' — '))
+          .join('\n') || '(no matching expert)');
+      return;
+    }
+
+    if (subcommand === 'recommend') {
+      const task = positionals.slice(2).join(' ').trim();
+      if (!task) {
+        console.error('expert recommend requires a <task>');
+        process.exitCode = 1;
+        return;
+      }
+      const client = options.client === 'all' ? '' : options.client;
+      const result = recommendExpert({ task, client, maxRecommendations: options.limit });
+      if (result.error) {
+        console.error(result.error);
+        process.exitCode = 1;
+        return;
+      }
+      printJsonOrText(result, options.json, (payload) =>
+        payload.recommendations
+          .map((item) => [item.name, item.reason].filter(Boolean).join(' — '))
+          .join('\n') || '(no recommendation)');
+      return;
+    }
+
+    if (subcommand === 'read') {
+      const name = positionals[2];
+      if (!name) {
+        console.error('expert read requires a <name>');
+        process.exitCode = 1;
+        return;
+      }
+      try {
+        const result = readExpert({ name });
+        printJsonOrText(result, options.json, (payload) => payload.content || '');
+      } catch (error) {
+        console.error(error.message);
+        process.exitCode = 1;
+      }
+      return;
+    }
+
+    throw new Error(`Unknown expert command: ${subcommand}`);
   }
 
   throw new Error(`Unknown command: ${command}`);

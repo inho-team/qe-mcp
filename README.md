@@ -104,8 +104,9 @@ qe-mcp-server
 
 In the client, the MCP tool list should include `qeExpertLibrary` tools such as
 `qe_search_experts`, `qe_read_expert`, `qe_run_codex_agent`,
-`qe_run_claude_agent`, `qe_cross_agent_help`, and the bounded QE maintenance
-and supervisor tools.
+`qe_run_claude_agent`, `qe_delegate_agent`, `qe_agent_run_status`,
+`qe_agent_run_read`, `qe_cross_agent_help`, and the bounded QE maintenance and
+supervisor tools.
 
 ## Tools
 
@@ -115,8 +116,11 @@ and supervisor tools.
 - `qe_read_methodology`: explicit bounded methodology/reference read
 - `qe_expert_prompt`: build a bounded expert prompt payload
 - `qe_expert_library_help`: quick server usage summary
-- `qe_run_codex_agent`: active local Codex runner with bounded timeout/output and default read-only posture
-- `qe_run_claude_agent`: active local Claude runner with bounded timeout/output and default plan/read-only posture
+- `qe_run_codex_agent`: bounded local Codex CLI runner with capped timeout/output and default read-only posture
+- `qe_run_claude_agent`: bounded local Claude CLI runner with capped timeout/output and fixed plan-mode posture
+- `qe_delegate_agent`: generic bounded local delegation tool for `target_engine: "codex"` or `"claude"`
+- `qe_agent_run_status`: read a compact lifecycle status projection by `run_id`
+- `qe_agent_run_read`: read a bounded, redacted lifecycle/result projection by `run_id`
 - `qe_cross_agent_help`: passive local runner contract and CLI capability summary
 - `qe_list_maintenance_jobs`: passive catalog of QE maintenance jobs and permission classes
 - `qe_run_maintenance_job`: dry-run or run-once predefined maintenance jobs with source/config writes, secrets, runner delegation, recursion, and internal scheduling denied
@@ -162,15 +166,40 @@ paths for expert reads. Expert content was migrated from the deleted optional QE
 catalog and should be treated as guidance that may need current API
 verification before implementation.
 
-The cross-agent runner tools are active execution tools. They launch only local
-CLIs with existing local auth, sanitize inherited environment variables, reject
-working directories outside this repository, cap timeout/output, and block
-nested cross-agent recursion by default. `qe_cross_agent_help` is passive and
-does not launch either runner.
+The cross-agent runner tools are active execution tools, but the public surface
+is still a bounded local delegation contract rather than a full autonomous
+multi-turn engine. The Phase 3 surface exposes `qe_delegate_agent` as the generic
+engine entry point for `target_engine: "codex"` or `"claude"`. It records
+delegation direction, checks target capability before launch, tracks lifecycle
+state, and builds a standard prompt envelope for the CLI subprocess.
 
-Do not use the active runner tools for routine expert-library lookups, untrusted
-prompts, broad autonomous edits, or tasks that require inheriting a user's full
-MCP configuration. Use the passive expert tools for guidance-only workflows.
+`qe_run_codex_agent` and `qe_run_claude_agent` remain public compatibility
+wrappers for callers that already use the engine-specific tool names. They
+should route through the same bounded engine contract as `qe_delegate_agent`;
+they are not separate permission surfaces.
+
+`qe_agent_run_status` and `qe_agent_run_read` are bounded lifecycle inspection
+APIs. They accept a `run_id`, read only the QE-managed lifecycle namespace, and
+return compact projections such as direction, decision, timestamps, status,
+transition metadata, and output sizes. They must not return raw full prompt,
+raw stdout, raw stderr, secret-like environment values, or arbitrary filesystem
+paths.
+
+Runner tools launch only local CLIs with existing local auth, sanitize inherited
+environment variables, reject working directories outside this repository, cap
+timeout/output, reject child MCP config inheritance, and block nested
+cross-agent recursion by default. `qe_cross_agent_help` is passive and does not
+launch either runner or read lifecycle records.
+
+Use passive expert tools for guidance-only workflows and routine expert-library
+lookups. Use `qe_run_codex_agent` or `qe_run_claude_agent` when an existing
+integration needs the legacy engine-specific wrapper. Use `qe_delegate_agent`
+when a caller wants the engine-level contract and explicit target selection.
+Use `qe_agent_run_status` or `qe_agent_run_read` after delegation when a caller
+needs bounded lifecycle inspection without raw capture exposure.
+
+Do not use the active runner tools for untrusted prompts, broad autonomous
+edits, or tasks that require inheriting a user's full MCP configuration.
 
 The QE maintenance tools are explicit orchestration/status surfaces, not a
 scheduler. They never install timers, background daemons, or hidden recurring
@@ -245,11 +274,76 @@ Minimal Claude runner call:
 }
 ```
 
+Minimal generic delegation call:
+
+```json
+{
+  "name": "qe_delegate_agent",
+  "arguments": {
+    "target_engine": "codex",
+    "intent": "inspect-repository-constraints",
+    "prompt": "Summarize the current repository constraints.",
+    "timeout_ms": 60000,
+    "max_output_bytes": 24000,
+    "policy": {
+      "allow_writes": false,
+      "mcp_policy": "none",
+      "max_concurrent_runs": 1
+    },
+    "output_contract": {
+      "output_mode": "jsonl",
+      "max_output_bytes": 24000
+    }
+  }
+}
+```
+
+Minimal lifecycle status/read calls:
+
+```json
+{
+  "name": "qe_agent_run_status",
+  "arguments": {
+    "run_id": "example-run-id"
+  }
+}
+```
+
+```json
+{
+  "name": "qe_agent_run_read",
+  "arguments": {
+    "run_id": "example-run-id",
+    "include_transitions": true
+  }
+}
+```
+
 Write-capable runs require an explicit write policy. Codex requires
 `allow_writes: true` plus `sandbox_mode: "workspace-write"`. Unsafe sandbox or
 permission modes such as `danger-full-access` and `bypassPermissions` are
 rejected. Recursive runner calls are blocked by default with
 `recursion_blocked`.
+
+Compatibility and policy notes:
+
+- `prompt` is the canonical input field. The legacy `task` alias is still
+  accepted by the legacy runner wrappers. `qe_delegate_agent` uses `prompt` as
+  its canonical input so new callers do not depend on wrapper aliases.
+- Existing bounded runner tools are compatibility wrappers over the public
+  delegation engine route. Help may expose engine metadata and lifecycle read
+  boundaries, but it must not imply unrestricted swarms or multi-turn
+  continuation.
+- Delegation direction, target capabilities, lifecycle state, and prompt
+  envelope construction are internal semantics used to make the bounded runner
+  behavior inspectable and consistent.
+- `qe_agent_run_status` and `qe_agent_run_read` are read-only projections over
+  QE lifecycle records, not arbitrary file readers.
+- Claude runner execution currently supports only `permission_mode: "plan"`;
+  other permission modes fail closed instead of being accepted and ignored.
+- `mcp_policy` currently supports only `"none"` because child MCP config
+  inheritance is outside this trust boundary.
+- `max_concurrent_runs` is capped at `1` per server process.
 
 Troubleshooting:
 

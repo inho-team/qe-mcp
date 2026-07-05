@@ -48,10 +48,8 @@ async function inspectCommand(command, spawnImpl) {
 // Builds passive help for Codex/Claude runner capabilities and defaults.
 export async function getCrossAgentHelp(args = {}, options = {}) {
   const spawnImpl = options.spawnImpl;
-  const [codex, claude] = await Promise.all([
-    inspectCommand(args.codexCommand || 'codex', spawnImpl),
-    inspectCommand(args.claudeCommand || 'claude', spawnImpl),
-  ]);
+  const codex = await inspectCommand(args.codexCommand || 'codex', spawnImpl);
+  const claude = await inspectCommand(args.claudeCommand || 'claude', spawnImpl);
 
   return {
     tools: [
@@ -65,11 +63,35 @@ export async function getCrossAgentHelp(args = {}, options = {}) {
       },
       {
         name: 'qe_run_claude_agent',
-        side_effects: 'May launch local Claude and perform workspace reads; writes require allow_writes=true.',
+        side_effects: 'May launch local Claude in fixed plan mode and perform workspace reads.',
         auth: 'Uses the existing local Claude CLI/session auth only.',
         timeout: `Default ${DEFAULTS.timeout_ms} ms, caller bounded by timeout_ms/timeoutMs.`,
         output_cap: `Default ${DEFAULTS.max_output_bytes} bytes, caller bounded by max_output_bytes/outputCap.`,
         recursion: 'Nested cross-agent delegation is denied by default.',
+      },
+      {
+        name: 'qe_delegate_agent',
+        side_effects: 'May launch one bounded local target engine selected by target_engine=codex|claude.',
+        auth: 'Uses the existing local target CLI/session auth only.',
+        timeout: `Default ${DEFAULTS.timeout_ms} ms, caller bounded by timeout_ms/timeoutMs.`,
+        output_cap: `Default ${DEFAULTS.max_output_bytes} bytes, caller bounded by max_output_bytes/outputCap.`,
+        recursion: 'Nested cross-agent delegation is denied by default.',
+      },
+      {
+        name: 'qe_agent_run_status',
+        side_effects: 'Read-only lifecycle status projection by run_id; never launches an agent.',
+        auth: 'No provider auth is required.',
+        timeout: 'Immediate local state read.',
+        output_cap: 'Compact status metadata only.',
+        recursion: 'Safe in planning flows because it does not invoke agents.',
+      },
+      {
+        name: 'qe_agent_run_read',
+        side_effects: 'Read-only bounded lifecycle/result projection by run_id; never reads arbitrary paths.',
+        auth: 'No provider auth is required.',
+        timeout: 'Immediate local state read.',
+        output_cap: 'Bounded redacted lifecycle metadata only.',
+        recursion: 'Safe in planning flows because it does not invoke agents.',
       },
       {
         name: 'qe_cross_agent_help',
@@ -94,7 +116,38 @@ export async function getCrossAgentHelp(args = {}, options = {}) {
     safety: {
       inherited_mcp_config: false,
       self_recursive_runner_tools: 'denied-by-default',
+      current_surface: 'phase-3-public-engine-surface',
+      generic_public_surface: 'qe_delegate_agent targets codex or claude through the bounded engine contract.',
+      lifecycle_read_surface: 'qe_agent_run_status and qe_agent_run_read return redacted run_id-based projections.',
       raw_help_text: 'not-returned',
+    },
+    delegation_engine: {
+      public_tools: ['qe_delegate_agent', 'qe_run_codex_agent', 'qe_run_claude_agent'],
+      compatibility_wrappers: ['qe_run_codex_agent', 'qe_run_claude_agent'],
+      lifecycle_tools: ['qe_agent_run_status', 'qe_agent_run_read'],
+      internal_route: true,
+      public_route: true,
+      generic_public_tool: 'qe_delegate_agent',
+      generic_public_tool_status: 'phase-3-public',
+      semantics: {
+        direction: 'Every route has an explicit origin and target engine.',
+        capability: 'Target capability is checked before subprocess launch.',
+        lifecycle: 'Runs move through accepted/denied/started/completed/timeout/failed states.',
+        prompt_envelope: 'Delegated prompts are wrapped in a standard engine envelope before CLI execution.',
+      },
+      lifecycle_projection: {
+        read_key: 'run_id',
+        allowed_namespace: '.qe/state/agent-runs/',
+        returns: ['direction', 'decision', 'status', 'timestamps', 'transitions', 'compact_output_metadata'],
+        redacts: ['raw_prompt', 'raw_stdout', 'raw_stderr', 'secret_like_environment_values'],
+      },
+      trust_boundary: {
+        local_cli_auth_only: true,
+        inherited_mcp_config: false,
+        writes_default: false,
+        concurrent_fanout: false,
+        multi_turn_continuation: false,
+      },
     },
   };
 }

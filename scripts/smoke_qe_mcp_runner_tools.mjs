@@ -75,6 +75,7 @@ function summarizeRunner(name, response) {
     error: result.error || null,
     normalization: result.normalization,
     exit_code: result.metadata?.exit_code ?? null,
+    run_id: result.metadata?.lifecycle?.run_id || null,
   };
 }
 
@@ -92,7 +93,14 @@ async function main() {
     client.notify('notifications/initialized');
     const tools = await client.request('tools/list');
     const toolNames = tools.result?.tools?.map((tool) => tool.name) || [];
-    for (const name of ['qe_run_codex_agent', 'qe_run_claude_agent', 'qe_cross_agent_help']) {
+    for (const name of [
+      'qe_run_codex_agent',
+      'qe_run_claude_agent',
+      'qe_cross_agent_help',
+      'qe_delegate_agent',
+      'qe_agent_run_status',
+      'qe_agent_run_read',
+    ]) {
       if (!toolNames.includes(name)) throw new Error(`missing tool: ${name}`);
     }
 
@@ -115,9 +123,15 @@ async function main() {
       'qe_run_claude_agent',
       await client.request('tools/call', { name: 'qe_run_claude_agent', arguments: commonArgs })
     );
+    const lifecycleRunId =
+      codex.status === 'ok'
+        ? (await client.request('tools/call', { name: 'qe_agent_run_status', arguments: { run_id: codex.run_id } }))
+        : null;
     const summary = {
       server: init.result?.serverInfo,
       help_passive: true,
+      public_engine_tools: true,
+      status_read: lifecycleRunId ? lifecycleRunId.result?.structuredContent?.status || 'missing' : 'skipped',
       runners: [codex, claude],
     };
     console.log(JSON.stringify(summary, null, 2));

@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
-import { realpathSync } from 'fs';
-import { resolve } from 'path';
+import { existsSync, realpathSync } from 'fs';
+import { resolve, sep } from 'path';
 
 export const ERROR_CATEGORIES = [
   'not_installed',
@@ -30,10 +30,17 @@ export const DEFAULT_RUNNER_POLICY = Object.freeze({
   output_mode: 'json',
 });
 
-const CODEX_SANDBOX_MODES = new Set(['read-only', 'workspace-write']);
-const CLAUDE_PERMISSION_MODES = new Set(['plan', 'default', 'dontAsk', 'auto', 'acceptEdits']);
-const MCP_POLICIES = new Set(['none', 'strict-generated', 'allowlist']);
-const OUTPUT_MODES = new Set(['text', 'json', 'stream-json', 'jsonl']);
+export const RUNNER_ENGINES = Object.freeze(['claude', 'codex']);
+export const CODEX_SANDBOX_MODES = Object.freeze(['read-only', 'workspace-write']);
+export const CLAUDE_PERMISSION_MODES = Object.freeze(['plan']);
+export const MCP_POLICIES = Object.freeze(['none']);
+export const OUTPUT_MODES = Object.freeze(['text', 'json', 'stream-json', 'jsonl']);
+
+const RUNNER_ENGINE_SET = new Set(RUNNER_ENGINES);
+const CODEX_SANDBOX_MODE_SET = new Set(CODEX_SANDBOX_MODES);
+const CLAUDE_PERMISSION_MODE_SET = new Set(CLAUDE_PERMISSION_MODES);
+const MCP_POLICY_SET = new Set(MCP_POLICIES);
+const OUTPUT_MODE_SET = new Set(OUTPUT_MODES);
 
 // Builds a taxonomy-safe runner error object.
 export function makeRunnerError(category, message, retryable = false) {
@@ -52,11 +59,20 @@ export function policyDenied(message) {
   return error;
 }
 
+export function runnerError(category, message, retryable = false) {
+  const error = new Error(message);
+  error.category = ERROR_CATEGORIES.includes(category) ? category : 'nonzero_exit';
+  error.retryable = Boolean(retryable);
+  return error;
+}
+
 // Resolves cwd and rejects paths outside explicit allowed roots.
 export function resolveAllowedCwd(cwd, allowedRoots = [process.cwd()]) {
-  const requested = realpathSync(resolve(cwd || process.cwd()));
+  const raw = resolve(cwd || process.cwd());
+  if (!existsSync(raw)) throw policyDenied(`cwd does not exist: ${cwd || process.cwd()}`);
+  const requested = realpathSync(raw);
   const roots = allowedRoots.map((root) => realpathSync(resolve(root)));
-  const allowed = roots.some((root) => requested === root || requested.startsWith(`${root}/`));
+  const allowed = roots.some((root) => requested === root || requested.startsWith(`${root}${sep}`));
   if (!allowed) throw policyDenied(`cwd outside allowed roots: ${requested}`);
   return requested;
 }
@@ -82,7 +98,7 @@ function asNumber(value, fallback, { min = 0, max = Number.MAX_SAFE_INTEGER } = 
 // Normalizes MCP runner request arguments into the contract shape.
 export function normalizeAgentRunRequest(args = {}, options = {}) {
   const engine = args.engine || options.engine;
-  if (!['claude', 'codex'].includes(engine)) throw policyDenied('engine must be claude or codex');
+  if (!RUNNER_ENGINE_SET.has(engine)) throw policyDenied('engine must be claude or codex');
 
   const prompt = typeof args.prompt === 'string' ? args.prompt.trim() : typeof args.task === 'string' ? args.task.trim() : '';
   if (!prompt) throw policyDenied('prompt is required');
@@ -102,21 +118,20 @@ export function normalizeAgentRunRequest(args = {}, options = {}) {
   const mcpPolicy = args.mcp_policy || DEFAULT_RUNNER_POLICY.mcp_policy;
   const outputMode = args.output_mode || (engine === 'codex' ? 'jsonl' : 'json');
 
-  if (!CODEX_SANDBOX_MODES.has(sandboxMode)) {
+  if (!CODEX_SANDBOX_MODE_SET.has(sandboxMode)) {
     throw policyDenied('sandbox_mode denied; danger-full-access is not allowed');
   }
   if (sandboxMode === 'workspace-write' && !allowWrites) {
     throw policyDenied('workspace-write requires allow_writes=true');
   }
-  if (!CLAUDE_PERMISSION_MODES.has(permissionMode)) throw policyDenied('permission_mode denied');
-  if (permissionMode === 'bypassPermissions') throw policyDenied('bypassPermissions is not allowed');
-  if (!MCP_POLICIES.has(mcpPolicy)) throw policyDenied('mcp_policy denied');
-  if (mcpPolicy !== 'none' && !Array.isArray(args.allowed_mcp_servers)) {
-    const error = new Error('MCP config requires explicit allowed_mcp_servers');
-    error.category = 'mcp_config_rejected';
-    throw error;
+  if (!CLAUDE_PERMISSION_MODE_SET.has(permissionMode)) {
+    throw policyDenied('permission_mode denied; only plan is supported by this bounded runner');
   }
-  if (!OUTPUT_MODES.has(outputMode)) throw policyDenied('output_mode denied');
+  if (!MCP_POLICY_SET.has(mcpPolicy)) {
+    throw runnerError('mcp_config_rejected', 'child MCP config is not inherited by runner tools');
+  }
+  if (!OUTPUT_MODE_SET.has(outputMode)) throw policyDenied('output_mode denied');
+  const maxConcurrentRuns = asInteger(args.max_concurrent_runs, DEFAULT_RUNNER_POLICY.max_concurrent_runs, { min: 1, max: 1 });
 
   return {
     prompt,
@@ -133,7 +148,7 @@ export function normalizeAgentRunRequest(args = {}, options = {}) {
     permission_mode: permissionMode,
     max_turns: asInteger(args.max_turns, DEFAULT_RUNNER_POLICY.max_turns, { min: 1, max: 5 }),
     max_budget_usd: asNumber(args.max_budget_usd, DEFAULT_RUNNER_POLICY.max_budget_usd, { min: 0, max: 10 }),
-    max_concurrent_runs: asInteger(args.max_concurrent_runs, DEFAULT_RUNNER_POLICY.max_concurrent_runs, { min: 1, max: 3 }),
+    max_concurrent_runs: maxConcurrentRuns,
     mcp_policy: mcpPolicy,
     output_mode: outputMode,
     call_depth: callDepth,
@@ -199,29 +214,31 @@ const commonProperties = {
   origin_engine: { type: 'string' },
   max_turns: { type: 'integer', minimum: 1, maximum: 5 },
   max_budget_usd: { type: 'number', minimum: 0, maximum: 10 },
-  max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 3 },
-  mcp_policy: { type: 'string', enum: ['none', 'strict-generated', 'allowlist'] },
-  output_mode: { type: 'string', enum: ['text', 'json', 'stream-json', 'jsonl'] },
+  max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 1 },
+  mcp_policy: { type: 'string', enum: MCP_POLICIES },
+  output_mode: { type: 'string', enum: OUTPUT_MODES },
+};
+
+const runIdProperties = {
+  run_id: { type: 'string', pattern: '^[a-zA-Z0-9._-]+$' },
 };
 
 // Provides MCP input schemas for active runner and passive help tools.
 export function buildToolSchemas() {
   const codexSchema = {
     type: 'object',
-    required: ['prompt'],
     additionalProperties: false,
     properties: {
       ...commonProperties,
-      sandbox_mode: { type: 'string', enum: ['read-only', 'workspace-write'] },
+      sandbox_mode: { type: 'string', enum: CODEX_SANDBOX_MODES },
     },
   };
   const claudeSchema = {
     type: 'object',
-    required: ['prompt'],
     additionalProperties: false,
     properties: {
       ...commonProperties,
-      permission_mode: { type: 'string', enum: ['plan', 'default', 'dontAsk', 'auto', 'acceptEdits'] },
+      permission_mode: { type: 'string', enum: CLAUDE_PERMISSION_MODES },
     },
   };
   const helpSchema = {
@@ -231,13 +248,64 @@ export function buildToolSchemas() {
       freshness_ms: { type: 'integer', minimum: 0 },
     },
   };
+  const delegateSchema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['target_engine'],
+    anyOf: [{ required: ['prompt'] }, { required: ['task'] }],
+    properties: {
+      ...commonProperties,
+      target_engine: { type: 'string', enum: RUNNER_ENGINES },
+      intent: { type: 'string' },
+      policy: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          allow_writes: { type: 'boolean' },
+          sandbox_mode: { type: 'string', enum: CODEX_SANDBOX_MODES },
+          permission_mode: { type: 'string', enum: CLAUDE_PERMISSION_MODES },
+          mcp_policy: { type: 'string', enum: MCP_POLICIES },
+          max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 1 },
+        },
+      },
+      output_contract: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          output_mode: { type: 'string', enum: OUTPUT_MODES },
+          max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
+        },
+      },
+    },
+  };
+  const statusSchema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['run_id'],
+    properties: runIdProperties,
+  };
+  const readSchema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['run_id'],
+    properties: {
+      ...runIdProperties,
+      include_transitions: { type: 'boolean' },
+    },
+  };
 
   return {
     codex: codexSchema,
     claude: claudeSchema,
     help: helpSchema,
+    delegate: delegateSchema,
+    status: statusSchema,
+    read: readSchema,
     qe_run_codex_agent: codexSchema,
     qe_run_claude_agent: claudeSchema,
     qe_cross_agent_help: helpSchema,
+    qe_delegate_agent: delegateSchema,
+    qe_agent_run_status: statusSchema,
+    qe_agent_run_read: readSchema,
   };
 }
