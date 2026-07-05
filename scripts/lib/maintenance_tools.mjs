@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { dirname, isAbsolute, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { pruneRunDir } from './state_reaper.mjs';
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(MODULE_DIR, '..', '..');
@@ -723,6 +724,12 @@ export async function runMaintenanceJob(args = {}) {
   envelope.stderr_bytes = Buffer.byteLength(capture.stderr || '', 'utf8');
   writeJson(stateFile, envelope);
   writeJson(statePathForJob(args, job.job_id), envelope);
+  // Opportunistic reap of old maintenance run records; best-effort, never fatal.
+  try {
+    pruneRunDir(resolve(getMaintenanceRoot(args), 'runs'));
+  } catch {
+    /* reaper is best-effort */
+  }
   return envelope;
 }
 

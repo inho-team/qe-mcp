@@ -3,6 +3,7 @@ import { accessSync, constants, existsSync, realpathSync } from 'fs';
 import { mkdir, readFile, rename, writeFile } from 'fs/promises';
 import { delimiter, dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { pruneRunDir } from './state_reaper.mjs';
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = realpathSync(resolve(MODULE_DIR, '..', '..'));
@@ -349,6 +350,13 @@ export async function createDelegationRun({ request, targetEngine = request.engi
     ],
   };
   const path = await writeLifecycleRecord(record, stateRoot);
+  // Opportunistic reap of old agent-run records. The just-written record is safe
+  // (grace window). A reaper failure must never break delegation, so swallow it.
+  try {
+    pruneRunDir(lifecycleDir(stateRoot));
+  } catch {
+    /* reaper is best-effort */
+  }
   return {
     run_id: runId,
     path,
