@@ -1,6 +1,6 @@
 {
   "name": "@inho-team/qe-mcp",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Standalone MCP server for QE expert-library search, recommendation, and explicit expert guidance reads",
   "type": "module",
   "private": false,
