@@ -23,8 +23,11 @@ import {
   getSupervisorStatus,
   listSupervisorEvents,
   listSupervisorSpecs,
+  runMonitorsOnce,
 } from './lib/supervisor_tools.mjs';
 import { getAgentRunProjection } from './lib/agent_engine_delegation.mjs';
+import { createSupervisorDaemon, isDaemonEnabled } from './lib/supervisor_daemon.mjs';
+import { join, resolve } from 'path';
 
 const PROTOCOL_VERSION = '2025-03-26';
 const SERVER_VERSION = '0.2.5';
@@ -839,6 +842,27 @@ function parseAndHandleRequest(payload) {
   } catch (error) {
     sendError(null, error);
   }
+}
+
+// --- Opt-in resident supervisor event producer (contract D032) ---
+// Inert unless QE_MCP_SUPERVISOR_DAEMON=on. A single-producer lock guarantees at
+// most one instance drives the loop across per-session server spawns; graceful
+// shutdown releases the lock so a peer can take over.
+const supervisorDaemon = isDaemonEnabled()
+  ? createSupervisorDaemon({
+      supervisorRoot: join(resolve(process.cwd()), '.qe', 'state', 'supervisor'),
+      runMonitors: () => runMonitorsOnce({ workspace_root: process.cwd() }),
+    })
+  : null;
+if (supervisorDaemon) {
+  supervisorDaemon.start();
+  const stopDaemon = () => {
+    try { supervisorDaemon.stop(); } catch { /* best-effort */ }
+  };
+  process.stdin.on('end', stopDaemon);
+  process.stdin.on('close', stopDaemon);
+  process.on('SIGTERM', () => { stopDaemon(); process.exit(0); });
+  process.on('SIGINT', () => { stopDaemon(); process.exit(0); });
 }
 
 let buffer = Buffer.alloc(0);

@@ -1,5 +1,7 @@
 import { createHash } from 'crypto';
+import { spawnSync } from 'child_process';
 import {
+  appendFileSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -14,6 +16,9 @@ const EVENT_SCHEMA = 'qe.supervisor.event.v1';
 const STATUS_SCHEMA = 'qe.supervisor.status.v1';
 const DEFAULT_LIMIT = 100;
 const MAX_LIMIT = 1000;
+// Contract retention (SUPERVISOR_EVENT_CONTRACT.md): latest 1,000 events or 30 days.
+const RETENTION_MAX_EVENTS = 1000;
+const RETENTION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_EVENT_BYTES = 16 * 1024;
 const MAX_READ_BYTES = 256 * 1024;
 const MAX_LOG_PREVIEW_BYTES = 64 * 1024;
@@ -26,6 +31,7 @@ const MONITOR_SPECS = Object.freeze([
     title: 'QE MCP doctor',
     run_mode: 'read-only',
     safe_command: 'qe-mcp doctor --json',
+    argv: ['qe-mcp', 'doctor', '--json'],
     timeout_ms: 30000,
     output_cap_bytes: 24000,
     scheduler_owner: 'external',
@@ -37,6 +43,7 @@ const MONITOR_SPECS = Object.freeze([
     title: 'QE MCP sync dry-run',
     run_mode: 'report-only',
     safe_command: 'qe-mcp sync --dry-run --json',
+    argv: ['qe-mcp', 'sync', '--dry-run', '--json'],
     timeout_ms: 30000,
     output_cap_bytes: 24000,
     scheduler_owner: 'external',
@@ -48,6 +55,7 @@ const MONITOR_SPECS = Object.freeze([
     title: 'Stale QE framework install state',
     run_mode: 'read-only',
     safe_command: 'npm run qe:validate',
+    argv: ['npm', 'run', 'qe:validate'],
     timeout_ms: 120000,
     output_cap_bytes: 24000,
     scheduler_owner: 'external',
@@ -206,6 +214,30 @@ function readAcks(args = {}) {
   }
 }
 
+/**
+ * Drop expired acks (past expires_at) and orphaned acks (no current event uses
+ * the key) so acks.json cannot accumulate indefinitely. `keep` force-retains the
+ * key(s) just written this call.
+ */
+function pruneAcks(acks, events, nowIso, keep = {}) {
+  const now = Date.parse(nowIso);
+  const valid = new Set(Object.keys(keep).filter(Boolean));
+  for (const e of events) {
+    if (e.event_id) valid.add(e.event_id);
+    valid.add(eventIdentity(e));
+  }
+  const out = {};
+  for (const [key, ack] of Object.entries(acks || {})) {
+    if (!valid.has(key)) continue;
+    if (ack?.expires_at) {
+      const exp = Date.parse(ack.expires_at);
+      if (Number.isFinite(exp) && Number.isFinite(now) && exp < now) continue;
+    }
+    out[key] = ack;
+  }
+  return out;
+}
+
 function applyAckProjection(event, acks) {
   const key = event.event_id || eventFingerprint(event);
   const identityKey = eventIdentity(event);
@@ -253,6 +285,158 @@ function parseEvents(args = {}) {
     events: projected,
     errors: [...errors, ...lockErrors, ...acks.errors],
   };
+}
+
+/** Best-effort timestamp of an event for retention (last_seen preferred). */
+function eventTimeMs(event) {
+  const t = Date.parse(event?.last_seen_at || event?.first_seen_at || '');
+  return Number.isFinite(t) ? t : 0;
+}
+
+/**
+ * Enforce the contract retention window on events.jsonl: keep the latest
+ * RETENTION_MAX_EVENTS and drop anything older than RETENTION_MAX_AGE_MS. Rewrite
+ * is atomic (tmp + rename); a no-op when nothing exceeds the bounds.
+ *
+ * Correctness assumes a single writer — guaranteed by the producer lock (D032),
+ * so no concurrent append can be lost between this read and the rename. A crash
+ * mid-rewrite leaves the prior events.jsonl intact (rename is atomic).
+ */
+export function enforceEventRetention(args = {}) {
+  const p = paths(args);
+  const now = args.now ? Date.parse(args.now) : Date.now();
+  let lines;
+  try {
+    if (!existsSync(p.events)) return { status: 'ok', removed: 0 };
+    lines = readFileSync(p.events, 'utf8').split('\n').filter((l) => l.trim());
+  } catch {
+    return { status: 'degraded', removed: 0 };
+  }
+  const parsed = [];
+  for (const line of lines) {
+    try {
+      parsed.push({ line, event: JSON.parse(line) });
+    } catch {
+      /* drop malformed/truncated lines during rewrite */
+    }
+  }
+  let kept = parsed.filter((p2) => now - eventTimeMs(p2.event) <= RETENTION_MAX_AGE_MS);
+  if (kept.length > RETENTION_MAX_EVENTS) kept = kept.slice(kept.length - RETENTION_MAX_EVENTS);
+  const removed = parsed.length - kept.length;
+  if (removed <= 0 && parsed.length === lines.length) return { status: 'ok', removed: 0 };
+  try {
+    const tmp = `${p.events}.${process.pid}.tmp`;
+    writeFileSync(tmp, kept.map((k) => k.line).join('\n') + (kept.length ? '\n' : ''), 'utf8');
+    renameSync(tmp, p.events);
+  } catch {
+    return { status: 'degraded', removed: 0 };
+  }
+  return { status: 'ok', removed };
+}
+
+/**
+ * Append a supervisor event to events.jsonl, then enforce retention. Collapses a
+ * duplicate of the latest same-identity event (same severity + evidence
+ * fingerprint) into a no-op per the dedupe contract, so repeated monitor ticks
+ * for an unchanged condition do not grow the log.
+ */
+export function emitEvent(event = {}, args = {}) {
+  const p = paths(args);
+  const nowIso = args.now || new Date().toISOString();
+  const record = {
+    schema: EVENT_SCHEMA,
+    severity: SEVERITIES.includes(event.severity) ? event.severity : 'INFO',
+    source: event.source || 'qe-mcp',
+    workspace: event.workspace || resolve(args.workspace_root || process.cwd()),
+    monitor_id: event.monitor_id || 'unknown',
+    dedupe_key: event.dedupe_key || '',
+    first_seen_at: event.first_seen_at || nowIso,
+    last_seen_at: nowIso,
+    ack: event.ack && ['acked', 'unacked'].includes(event.ack.state) ? event.ack : { state: 'unacked' },
+    summary: String(event.summary || ''),
+    details: String(event.details || ''),
+    evidence_path: event.evidence_path || null,
+    evidence_fingerprint: event.evidence_fingerprint || null,
+    remediation_hint: event.remediation_hint || null,
+  };
+  record.event_id = event.event_id
+    || createHash('sha256').update(`${eventIdentity(record)}|${record.first_seen_at}`).digest('hex').slice(0, 16);
+
+  // Dedupe collapse: if the newest same-identity event is unchanged and still
+  // open, skip the append (a repeated unchanged tick is a no-op).
+  const existing = parseEvents(args).events.filter((e) => eventIdentity(e) === eventIdentity(record));
+  const latest = existing[existing.length - 1];
+  if (latest && latest.severity === record.severity && latest.evidence_fingerprint === record.evidence_fingerprint && latest.ack?.state !== 'acked') {
+    return { status: 'collapsed', event_id: latest.event_id };
+  }
+
+  let line = JSON.stringify(record);
+  if (Buffer.byteLength(line, 'utf8') > MAX_EVENT_BYTES) {
+    record.details = `${record.details.slice(0, 2000)}\n[truncated]`;
+    record.details_truncated = true;
+    line = JSON.stringify(record);
+  }
+  try {
+    mkdirSync(dirname(p.events), { recursive: true });
+    appendFileSync(p.events, `${line}\n`, 'utf8');
+  } catch {
+    return { status: 'degraded', event_id: record.event_id };
+  }
+  enforceEventRetention(args);
+  return { status: 'emitted', event_id: record.event_id };
+}
+
+/**
+ * Run each executable MONITOR_SPEC once (bounded, no shell) and emit an event for
+ * any non-healthy result. Healthy (exit 0) monitors emit nothing, so the log only
+ * ever carries conditions that need attention. Descriptive specs (non-command
+ * safe_command) are skipped. `spawnImpl` is injectable for tests.
+ */
+export function runMonitorsOnce(args = {}, options = {}) {
+  const spawnImpl = options.spawnSync || spawnSync;
+  const results = [];
+  for (const spec of MONITOR_SPECS) {
+    // Only specs with an explicit argv array are executable; descriptive specs
+    // (no argv) are skipped. Using argv avoids any whitespace/quoting parse of a
+    // command string and there is never a shell in the loop.
+    if (!Array.isArray(spec.argv) || spec.argv.length === 0) continue;
+    const [cmd, ...cmdArgs] = spec.argv;
+    let severity = 'INFO';
+    let details = '';
+    try {
+      const r = spawnImpl(cmd, cmdArgs, {
+        cwd: args.workspace_root || process.cwd(),
+        timeout: spec.timeout_ms,
+        encoding: 'utf8',
+        maxBuffer: spec.output_cap_bytes,
+        shell: false,
+      });
+      details = `${String(r.stdout || '')}${String(r.stderr || '')}`.slice(0, spec.output_cap_bytes);
+      if (r.error && (r.error.code === 'ETIMEDOUT' || r.signal === 'SIGTERM')) severity = 'FAIL';
+      else if (r.error && r.error.code === 'ENOENT') severity = 'WARN';
+      else if (typeof r.status === 'number' && r.status !== 0) severity = 'WARN';
+      else severity = 'INFO';
+    } catch (err) {
+      severity = 'WARN';
+      details = err?.message || String(err);
+    }
+    if (severity === 'INFO') {
+      results.push({ monitor_id: spec.monitor_id, severity, emit: 'skipped-healthy' });
+      continue;
+    }
+    const fingerprint = createHash('sha256').update(details).digest('hex').slice(0, 16);
+    const emit = emitEvent({
+      severity,
+      source: spec.source,
+      monitor_id: spec.monitor_id,
+      dedupe_key: `${spec.monitor_id}:${severity}`,
+      summary: `${spec.title}: ${severity}`,
+      details,
+      evidence_fingerprint: fingerprint,
+    }, args);
+    results.push({ monitor_id: spec.monitor_id, severity, emit: emit.status });
+  }
+  return { status: 'ok', results };
 }
 
 function readLockErrors(args = {}) {
@@ -391,8 +575,10 @@ export function ackSupervisorEvent(args = {}) {
     severity: target?.severity || null,
     evidence_fingerprint: target?.evidence_fingerprint || null,
   };
-  const next = { ...existing, [args.event_id]: ack };
-  if (target) next[eventIdentity(target)] = ack;
+  const merged = { ...existing, [args.event_id]: ack };
+  if (target) merged[eventIdentity(target)] = ack;
+  // Prune expired and orphaned acks so acks.json cannot grow unbounded.
+  const next = pruneAcks(merged, parsed.events, now, { [args.event_id]: true, [eventIdentity(target)]: true });
   mkdirSync(dirname(p.acks), { recursive: true });
   const tmp = `${p.acks}.${process.pid}.tmp`;
   writeFileSync(tmp, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
