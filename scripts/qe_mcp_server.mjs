@@ -24,6 +24,7 @@ import {
   listSupervisorEvents,
   listSupervisorSpecs,
 } from './lib/supervisor_tools.mjs';
+import { getAgentRunProjection } from './lib/agent_engine_delegation.mjs';
 
 const PROTOCOL_VERSION = '2025-03-26';
 const SERVER_VERSION = '0.2.2';
@@ -31,35 +32,114 @@ let activeRunnerCount = 0;
 const FALLBACK_AGENT_TOOL_SCHEMAS = {
   qe_run_codex_agent: {
     type: 'object',
-    required: ['task'],
+    additionalProperties: false,
     properties: {
       task: { type: 'string' },
       prompt: { type: 'string' },
       cwd: { type: 'string' },
+      model: { type: 'string' },
       timeout_ms: { type: 'integer', minimum: 1000, maximum: 600000 },
       max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
       allow_writes: { type: 'boolean' },
       sandbox_mode: { type: 'string', enum: ['read-only', 'workspace-write'] },
-      model: { type: 'string' },
+      call_depth: { type: 'integer', minimum: 0, maximum: 1 },
+      call_chain_id: { type: 'string' },
+      origin_engine: { type: 'string' },
+      max_turns: { type: 'integer', minimum: 1, maximum: 5 },
+      max_budget_usd: { type: 'number', minimum: 0, maximum: 10 },
+      max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 1 },
+      mcp_policy: { type: 'string', enum: ['none'] },
+      output_mode: { type: 'string', enum: ['text', 'json', 'stream-json', 'jsonl'] },
     },
   },
   qe_run_claude_agent: {
     type: 'object',
-    required: ['task'],
+    additionalProperties: false,
     properties: {
       task: { type: 'string' },
       prompt: { type: 'string' },
       cwd: { type: 'string' },
+      model: { type: 'string' },
       timeout_ms: { type: 'integer', minimum: 1000, maximum: 600000 },
       max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
       allow_writes: { type: 'boolean' },
-      permission_mode: { type: 'string', enum: ['plan', 'default', 'dontAsk', 'auto', 'acceptEdits'] },
-      model: { type: 'string' },
+      permission_mode: { type: 'string', enum: ['plan'] },
+      call_depth: { type: 'integer', minimum: 0, maximum: 1 },
+      call_chain_id: { type: 'string' },
+      origin_engine: { type: 'string' },
+      max_turns: { type: 'integer', minimum: 1, maximum: 5 },
+      max_budget_usd: { type: 'number', minimum: 0, maximum: 10 },
+      max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 1 },
+      mcp_policy: { type: 'string', enum: ['none'] },
+      output_mode: { type: 'string', enum: ['text', 'json', 'stream-json', 'jsonl'] },
     },
   },
   qe_cross_agent_help: {
     type: 'object',
     properties: {},
+  },
+  qe_delegate_agent: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['target_engine'],
+    anyOf: [{ required: ['prompt'] }, { required: ['task'] }],
+    properties: {
+      task: { type: 'string' },
+      prompt: { type: 'string' },
+      target_engine: { type: 'string', enum: ['claude', 'codex'] },
+      intent: { type: 'string' },
+      cwd: { type: 'string' },
+      model: { type: 'string' },
+      timeout_ms: { type: 'integer', minimum: 1000, maximum: 600000 },
+      max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
+      allow_writes: { type: 'boolean' },
+      sandbox_mode: { type: 'string', enum: ['read-only', 'workspace-write'] },
+      permission_mode: { type: 'string', enum: ['plan'] },
+      call_depth: { type: 'integer', minimum: 0, maximum: 1 },
+      call_chain_id: { type: 'string' },
+      origin_engine: { type: 'string' },
+      max_turns: { type: 'integer', minimum: 1, maximum: 5 },
+      max_budget_usd: { type: 'number', minimum: 0, maximum: 10 },
+      max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 1 },
+      mcp_policy: { type: 'string', enum: ['none'] },
+      output_mode: { type: 'string', enum: ['text', 'json', 'stream-json', 'jsonl'] },
+      policy: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          allow_writes: { type: 'boolean' },
+          sandbox_mode: { type: 'string', enum: ['read-only', 'workspace-write'] },
+          permission_mode: { type: 'string', enum: ['plan'] },
+          mcp_policy: { type: 'string', enum: ['none'] },
+          max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 1 },
+        },
+      },
+      output_contract: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          output_mode: { type: 'string', enum: ['text', 'json', 'stream-json', 'jsonl'] },
+          max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
+        },
+      },
+    },
+  },
+  qe_agent_run_status: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['run_id'],
+    properties: {
+      run_id: { type: 'string' },
+    },
+  },
+  qe_agent_run_read: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['run_id'],
+    properties: {
+      run_id: { type: 'string' },
+      include_transitions: { type: 'boolean' },
+    },
   },
 };
 
@@ -74,7 +154,7 @@ const AGENT_TOOL_HELP = [
   },
   {
     name: 'qe_run_claude_agent',
-    sideEffects: 'May launch a Claude agent. Default plan/read-only posture with restricted tools.',
+    sideEffects: 'May launch a Claude agent. Permission mode is fixed to plan with restricted tools.',
     auth: 'Uses the local Claude CLI/session auth already configured on this machine.',
     timeout: 'Bounded by timeout_ms; default 60000 ms, max 600000 ms.',
     outputCap: 'Bounded by max_output_bytes; default 24000 bytes, max 1000000 bytes.',
@@ -91,13 +171,14 @@ const AGENT_TOOL_HELP = [
 ];
 const MAINTENANCE_TOOL_SCHEMAS = buildMaintenanceToolSchemas();
 const SUPERVISOR_TOOL_SCHEMAS = buildSupervisorToolSchemas();
-const EXPOSE_OPTIONAL_SURFACES = process.env.QE_MCP_EXPOSE_RESOURCES === '1'
-  || process.env.QE_MCP_EXPOSE_PROMPTS === '1';
+const EXPOSE_RESOURCES = process.env.QE_MCP_EXPOSE_RESOURCES === '1';
+const EXPOSE_PROMPTS = process.env.QE_MCP_EXPOSE_PROMPTS === '1';
 
 function initializeCapabilities() {
   return {
     tools: {},
-    ...(EXPOSE_OPTIONAL_SURFACES ? { resources: {}, prompts: {} } : {}),
+    ...(EXPOSE_RESOURCES ? { resources: {} } : {}),
+    ...(EXPOSE_PROMPTS ? { prompts: {} } : {}),
   };
 }
 
@@ -115,6 +196,7 @@ async function loadOptionalAgentHelpers() {
   const optionalModules = [
     ['runCodexAgent', './lib/codex_runner.mjs'],
     ['runClaudeAgent', './lib/claude_runner.mjs'],
+    ['runDelegateAgent', './lib/delegate_runner.mjs'],
     ['getCrossAgentHelp', './lib/cross_agent_help.mjs'],
     ['buildToolSchemas', './lib/agent_runner_contract.mjs'],
   ];
@@ -156,6 +238,12 @@ function getAgentToolSchemas() {
         helperSchemas.qe_run_claude_agent || helperSchemas.claude || FALLBACK_AGENT_TOOL_SCHEMAS.qe_run_claude_agent,
       qe_cross_agent_help:
         helperSchemas.qe_cross_agent_help || helperSchemas.help || FALLBACK_AGENT_TOOL_SCHEMAS.qe_cross_agent_help,
+      qe_delegate_agent:
+        helperSchemas.qe_delegate_agent || helperSchemas.delegate || FALLBACK_AGENT_TOOL_SCHEMAS.qe_delegate_agent,
+      qe_agent_run_status:
+        helperSchemas.qe_agent_run_status || helperSchemas.status || FALLBACK_AGENT_TOOL_SCHEMAS.qe_agent_run_status,
+      qe_agent_run_read:
+        helperSchemas.qe_agent_run_read || helperSchemas.read || FALLBACK_AGENT_TOOL_SCHEMAS.qe_agent_run_read,
     };
   } catch {
     return FALLBACK_AGENT_TOOL_SCHEMAS;
@@ -178,7 +266,7 @@ function buildCrossAgentHelpPayload(payload) {
     ? normalizedPayload.notes
     : [
         'qe_cross_agent_help is passive and never launches agent runners.',
-        'Use qe_run_codex_agent or qe_run_claude_agent only when explicit cross-agent execution is required.',
+        'Use qe_run_codex_agent or qe_run_claude_agent only when explicit bounded local CLI execution is required.',
       ];
 
   return {
@@ -207,11 +295,11 @@ function normalizeRunnerArgs(toolName, args = {}) {
 }
 
 // Dispatches active runner calls through optional local helpers.
-async function callRunnerTool(toolName, runner, args) {
+async function callRunnerTool(toolName, runner, args, engineOverride = null) {
   if (typeof runner !== 'function') {
     throw new Error(`${toolName} is unavailable because its local runner helper is not present`);
   }
-  const engine = toolName.includes('codex') ? 'codex' : 'claude';
+  const engine = engineOverride || (toolName.includes('codex') ? 'codex' : 'claude');
   if (activeRunnerCount >= 1) {
     return toolResponse({
       engine,
@@ -252,6 +340,74 @@ async function callRunnerTool(toolName, runner, args) {
   } finally {
     activeRunnerCount -= 1;
   }
+}
+
+function normalizeDelegateArgs(args = {}) {
+  const targetEngine = args.target_engine || args.engine;
+  if (targetEngine !== 'codex' && targetEngine !== 'claude') {
+    return {
+      targetEngine,
+      runner: null,
+      args: {
+        ...args,
+        engine: targetEngine,
+      },
+      error: {
+        category: 'policy_denied',
+        message: 'target_engine must be codex or claude',
+        retryable: false,
+      },
+    };
+  }
+  const policy = args.policy && typeof args.policy === 'object' ? args.policy : {};
+  const outputContract = args.output_contract && typeof args.output_contract === 'object' ? args.output_contract : {};
+  return {
+    targetEngine,
+    runner: targetEngine === 'codex' ? optionalAgentHelpers.runCodexAgent : optionalAgentHelpers.runClaudeAgent,
+    args: {
+      ...args,
+      ...policy,
+      ...outputContract,
+      engine: targetEngine,
+      origin_engine: args.origin_engine || 'mcp',
+      intent: args.intent || 'generic-delegation',
+    },
+    error: null,
+  };
+}
+
+function delegateErrorResponse(args, error) {
+  const engine = args.target_engine || args.engine || 'unknown';
+  return toolResponse({
+    engine,
+    status: 'error',
+    summary: error.message,
+    output: '',
+    events: [],
+    metadata: {
+      cwd: args.cwd || null,
+      model: args.model || null,
+      duration_ms: 0,
+      exit_code: null,
+      signal: null,
+      call_depth: args.call_depth || 0,
+      call_chain_id: args.call_chain_id || '',
+      origin_engine: args.origin_engine || 'mcp',
+      target_engine: engine,
+      delegation_direction: `${args.origin_engine || 'mcp'}->${engine}`,
+      lifecycle: { cleanup_status: 'not_started', run_id: null, state_path: null, record_path: null, status: 'denied' },
+    },
+    normalization: {
+      output_format: args.output_mode || 'unknown',
+      normalization_status: 'empty',
+      truncated: false,
+      stdout_bytes: 0,
+      stderr_bytes: 0,
+      parse_error: null,
+      raw_capture_policy: 'metadata_only',
+    },
+    error,
+  });
 }
 
 // Returns all passive expert tools plus opt-in runner tools.
@@ -335,20 +491,38 @@ function listTools() {
     {
       name: 'qe_run_codex_agent',
       description:
-        'Run a local Codex agent for active execution. Side effects: default read-only; writes require allow_writes and workspace-write. Auth: uses existing local Codex CLI/session auth. Timeout/output: bounded by timeout_ms and max_output_bytes. Recursion: blocked by default.',
+        'Run a bounded local Codex CLI subprocess. Side effects: default read-only; writes require allow_writes and workspace-write. Auth: uses existing local Codex CLI/session auth. Timeout/output: bounded by timeout_ms and max_output_bytes. Recursion and child MCP config inheritance are blocked by default.',
       inputSchema: agentToolSchemas.qe_run_codex_agent,
     },
     {
       name: 'qe_run_claude_agent',
       description:
-        'Run a local Claude agent for active execution. Side effects: default plan/read-only posture with restricted tools. Auth: uses existing local Claude CLI/session auth. Timeout/output: bounded by timeout_ms and max_output_bytes. Recursion: blocked by default.',
+        'Run a bounded local Claude CLI subprocess. Side effects: permission_mode is fixed to plan with restricted tools. Auth: uses existing local Claude CLI/session auth. Timeout/output: bounded by timeout_ms and max_output_bytes. Recursion and child MCP config inheritance are blocked by default.',
       inputSchema: agentToolSchemas.qe_run_claude_agent,
     },
     {
       name: 'qe_cross_agent_help',
       description:
-        'Return passive cross-agent runner help. Side effects: none. Auth: none beyond local runner expectations. Timeout: immediate local response. Output cap: compact structured help only. Recursion: safe because this tool never launches runners.',
+        'Return passive bounded-runner help. Side effects: none. Auth: none beyond local runner expectations. Timeout: immediate local response. Output cap: compact structured help only. Recursion: safe because this tool never launches runners.',
       inputSchema: agentToolSchemas.qe_cross_agent_help,
+    },
+    {
+      name: 'qe_delegate_agent',
+      description:
+        'Run a bounded generic delegation through the internal engine route. Side effects: may launch the selected local Codex or Claude CLI. Auth: existing local CLI/session auth only. Timeout/output: bounded by the runner contract. Recursion, child MCP config inheritance, concurrent fan-out, and unsafe writes are denied by default.',
+      inputSchema: agentToolSchemas.qe_delegate_agent,
+    },
+    {
+      name: 'qe_agent_run_status',
+      description:
+        'Read compact lifecycle status for a delegated run by run_id. Side effects: none. Returns redacted metadata only; no raw prompt/stdout/stderr or arbitrary file paths.',
+      inputSchema: agentToolSchemas.qe_agent_run_status,
+    },
+    {
+      name: 'qe_agent_run_read',
+      description:
+        'Read a bounded redacted lifecycle projection for a delegated run by run_id. Side effects: none. Returns direction, decision, transitions, and compact output metadata only.',
+      inputSchema: agentToolSchemas.qe_agent_run_read,
     },
     {
       name: 'qe_list_maintenance_jobs',
@@ -463,6 +637,30 @@ async function callTool(name, args = {}) {
     return toolResponse(buildCrossAgentHelpPayload(payload));
   }
 
+  if (name === 'qe_delegate_agent') {
+    const normalized = normalizeDelegateArgs(args);
+    if (normalized.error) {
+      return delegateErrorResponse(args, normalized.error);
+    }
+    const runner = optionalAgentHelpers.runDelegateAgent || normalized.runner;
+    const runnerArgs = optionalAgentHelpers.runDelegateAgent ? args : normalized.args;
+    return callRunnerTool(name, runner, runnerArgs, normalized.targetEngine);
+  }
+
+  if (name === 'qe_agent_run_status') {
+    const projection = await getAgentRunProjection(requireNonEmptyString(args.run_id, 'run_id', name), {
+      includeTransitions: false,
+    });
+    return toolResponse(projection);
+  }
+
+  if (name === 'qe_agent_run_read') {
+    const projection = await getAgentRunProjection(requireNonEmptyString(args.run_id, 'run_id', name), {
+      includeTransitions: args.include_transitions !== false,
+    });
+    return toolResponse(projection);
+  }
+
   if (name === 'qe_list_maintenance_jobs') {
     return toolResponse(listMaintenanceJobs(args));
   }
@@ -543,8 +741,14 @@ function getPrompt(name, args = {}) {
 }
 
 // Writes a JSON-RPC message with stdio content-length framing.
+let outputFraming = 'content-length';
+
 function sendMessage(message) {
   const json = JSON.stringify(message);
+  if (outputFraming === 'json-line') {
+    process.stdout.write(`${json}\n`);
+    return;
+  }
   process.stdout.write(`Content-Length: ${Buffer.byteLength(json, 'utf8')}\r\n\r\n${json}`);
 }
 
@@ -557,7 +761,7 @@ function sendResponse(id, result) {
 function sendError(id, error) {
   sendMessage({
     jsonrpc: '2.0',
-    id,
+    id: id ?? null,
     error: {
       code: -32000,
       message: error.message || String(error),
@@ -629,12 +833,31 @@ async function handleRequest(message) {
   }
 }
 
+function parseAndHandleRequest(payload) {
+  try {
+    void handleRequest(JSON.parse(payload));
+  } catch (error) {
+    sendError(null, error);
+  }
+}
+
 let buffer = Buffer.alloc(0);
 
 process.stdin.on('data', (chunk) => {
   buffer = Buffer.concat([buffer, chunk]);
 
   while (true) {
+    if (!buffer.toString('utf8', 0, Math.min(buffer.length, 32)).startsWith('Content-Length:')) {
+      const lineEnd = buffer.indexOf('\n');
+      if (lineEnd < 0) return;
+      const line = buffer.slice(0, lineEnd).toString('utf8').trim();
+      buffer = buffer.slice(lineEnd + 1);
+      if (!line) continue;
+      outputFraming = 'json-line';
+      parseAndHandleRequest(line);
+      continue;
+    }
+
     const headerEnd = buffer.indexOf('\r\n\r\n');
     if (headerEnd < 0) return;
 
@@ -652,6 +875,7 @@ process.stdin.on('data', (chunk) => {
     const body = buffer.slice(headerEnd + 4, totalLength).toString('utf8');
     buffer = buffer.slice(totalLength);
 
-    void handleRequest(JSON.parse(body));
+    outputFraming = 'content-length';
+    parseAndHandleRequest(body);
   }
 });

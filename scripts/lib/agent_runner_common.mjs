@@ -1,8 +1,12 @@
 import { spawn } from 'child_process';
-import { existsSync, realpathSync } from 'fs';
-import os from 'os';
-import { dirname, resolve, sep } from 'path';
+import { realpathSync } from 'fs';
+import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import {
+  normalizeAgentRunRequest,
+  policyDenied as contractPolicyDenied,
+  resolveAllowedCwd as resolveContractAllowedCwd,
+} from './agent_runner_contract.mjs';
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = realpathSync(resolve(MODULE_DIR, '..', '..'));
@@ -33,10 +37,6 @@ export const DEFAULTS = {
   help_max_bytes: 12000,
   help_freshness_hours: 24,
 };
-
-const CODEX_SANDBOX_MODES = new Set(['read-only', 'workspace-write']);
-const CLAUDE_PERMISSION_MODES = new Set(['plan', 'default', 'dontAsk', 'auto', 'acceptEdits']);
-const OUTPUT_MODE_MAX_BYTES = 1000000;
 
 const ENV_ALLOWLIST = new Set([
   'PATH',
@@ -111,24 +111,12 @@ export function isDeniedEnvKey(key) {
 
 // Resolves and verifies that runner cwd stays inside approved roots.
 export function resolveAllowedCwd(cwd = REPO_ROOT, allowedRoots = [REPO_ROOT]) {
-  const requested = resolve(cwd || REPO_ROOT);
-  if (!existsSync(requested)) {
-    throw policyError(`cwd does not exist: ${cwd}`);
-  }
-  const real = realpathSync(requested);
-  const roots = allowedRoots.map((root) => realpathSync(resolve(root)));
-  const allowed = roots.some((root) => real === root || real.startsWith(`${root}${sep}`));
-  if (!allowed) {
-    throw policyError(`cwd is outside allowed root: ${cwd}`);
-  }
-  return real;
+  return resolveContractAllowedCwd(cwd || REPO_ROOT, allowedRoots);
 }
 
 // Creates a policy-denied error with the runner taxonomy category.
 export function policyError(message) {
-  const error = new Error(message);
-  error.category = 'policy_denied';
-  return error;
+  return contractPolicyDenied(message);
 }
 
 // Normalizes caller output mode without widening the allowed parser surface.
@@ -139,66 +127,14 @@ function normalizeOutputMode(mode, fallback = 'json') {
 
 // Validates runner arguments and applies bounded execution defaults.
 export function normalizeRequest(args = {}, engine) {
-  const prompt = typeof args.prompt === 'string' ? args.prompt : typeof args.task === 'string' ? args.task : '';
-  if (!prompt.trim()) {
-    throw policyError('prompt is required');
-  }
-
-  const callDepth = Number.isInteger(args.call_depth) ? args.call_depth : 0;
-  if (callDepth > 0 && args.allow_recursive_delegation !== true) {
-    const error = new Error('recursive agent call blocked');
-    error.category = 'recursion_blocked';
-    throw error;
-  }
-  const maxConcurrentRuns = Number(args.max_concurrent_runs) || DEFAULTS.max_concurrent_runs;
-  if (maxConcurrentRuns !== 1) {
-    const error = new Error('parallel runner calls are denied by default');
-    error.category = 'policy_denied';
-    throw error;
-  }
-  const sandboxMode = args.sandbox_mode || 'read-only';
-  const permissionMode = args.permission_mode || 'plan';
-  if (engine === 'codex') {
-    if (!CODEX_SANDBOX_MODES.has(sandboxMode)) {
-      throw policyError('sandbox_mode denied; danger-full-access is not allowed');
-    }
-    if (sandboxMode === 'workspace-write' && args.allow_writes !== true) {
-      throw policyError('workspace-write requires allow_writes=true');
-    }
-  }
-  if (engine === 'claude') {
-    if (!CLAUDE_PERMISSION_MODES.has(permissionMode)) {
-      throw policyError('permission_mode denied');
-    }
-  }
-  if (args.mcp_policy && args.mcp_policy !== 'none') {
-    const error = new Error('child MCP config is not inherited by runner tools');
-    error.category = 'mcp_config_rejected';
-    throw error;
-  }
-  const maxOutputBytes = Number(args.max_output_bytes ?? args.outputCap) || DEFAULTS.max_output_bytes;
-  if (maxOutputBytes < 200 || maxOutputBytes > OUTPUT_MODE_MAX_BYTES) {
-    throw policyError('max_output_bytes outside allowed bounds');
-  }
-
+  const request = normalizeAgentRunRequest(
+    { ...args, engine },
+    { engine, allowedRoots: [REPO_ROOT] }
+  );
   return {
-    prompt,
-    cwd: resolveAllowedCwd(args.cwd || REPO_ROOT),
-    engine,
-    output_mode: normalizeOutputMode(args.output_mode, engine === 'codex' ? 'jsonl' : 'json'),
-    model: typeof args.model === 'string' ? args.model : null,
-    timeout_ms: Math.min(600000, Math.max(1000, Number(args.timeout_ms ?? args.timeoutMs) || DEFAULTS.timeout_ms)),
-    max_output_bytes: maxOutputBytes,
-    allow_writes: args.allow_writes === true,
-    sandbox_mode: sandboxMode,
-    permission_mode: permissionMode,
-    call_depth: callDepth,
-    call_chain_id: typeof args.call_chain_id === 'string' && args.call_chain_id
-      ? args.call_chain_id
-      : `chain-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-    origin_engine: typeof args.origin_engine === 'string' ? args.origin_engine : 'unknown',
-    max_budget_usd: Number(args.max_budget_usd) || DEFAULTS.max_budget_usd,
-    max_concurrent_runs: maxConcurrentRuns,
+    ...request,
+    // Keep parser fallback behavior explicit for callers that pass unknown modes.
+    output_mode: normalizeOutputMode(request.output_mode, engine === 'codex' ? 'jsonl' : 'json'),
   };
 }
 
@@ -221,7 +157,7 @@ export function makeAgentRunResult({
     output,
     events: Array.isArray(events) ? events : [],
     metadata: {
-      cwd: request.cwd || metadata.cwd || REPO_ROOT,
+      cwd: request.cwd || metadata.cwd || '',
       model: request.model || metadata.model || null,
       duration_ms: metadata.duration_ms || 0,
       exit_code: metadata.exit_code ?? null,
@@ -229,8 +165,15 @@ export function makeAgentRunResult({
       call_depth: request.call_depth ?? metadata.call_depth ?? 0,
       call_chain_id: request.call_chain_id || metadata.call_chain_id || '',
       origin_engine: request.origin_engine || metadata.origin_engine || 'unknown',
+      target_engine: metadata.target_engine || engine,
+      delegation_direction: metadata.delegation_direction || `${request.origin_engine || metadata.origin_engine || 'unknown'}->${metadata.target_engine || engine}`,
+      decision: metadata.decision || null,
       lifecycle: {
         cleanup_status: metadata.lifecycle?.cleanup_status || 'not_needed',
+        run_id: metadata.lifecycle?.run_id || null,
+        state_path: metadata.lifecycle?.state_path || null,
+        record_path: metadata.lifecycle?.record_path || metadata.lifecycle?.state_path || null,
+        status: metadata.lifecycle?.status || null,
       },
     },
     normalization: {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'fs';
 import { spawn } from 'child_process';
 import { join, resolve } from 'path';
 import { tmpdir } from 'os';
@@ -23,8 +23,17 @@ import {
   listSupervisorSpecs,
   planSupervisorInstall,
 } from './lib/supervisor_tools.mjs';
+import {
+  syncRegistryToClients,
+  writeRegistry,
+} from './lib/qe_mcp_registry.mjs';
+import {
+  buildToolSchemas,
+  normalizeAgentRunRequest,
+} from './lib/agent_runner_contract.mjs';
 
 const serverPath = resolve(process.cwd(), 'scripts', 'qe_mcp_server.mjs');
+const cliPath = resolve(process.cwd(), 'scripts', 'qe_mcp.mjs');
 const libDir = resolve(process.cwd(), 'scripts', 'lib');
 
 // Encodes a JSON-RPC message for stdio MCP framing.
@@ -87,6 +96,52 @@ function createClient() {
   };
 }
 
+function createLineClient(env = {}) {
+  const child = spawn(process.execPath, [serverPath], {
+    cwd: process.cwd(),
+    env: { ...process.env, ...env },
+    stdio: ['pipe', 'pipe', 'inherit'],
+    windowsHide: true,
+  });
+
+  let buffer = '';
+  const pending = new Map();
+
+  child.stdout.on('data', (chunk) => {
+    buffer += chunk.toString('utf8');
+    while (true) {
+      const lineEnd = buffer.indexOf('\n');
+      if (lineEnd < 0) return;
+      const line = buffer.slice(0, lineEnd).trim();
+      buffer = buffer.slice(lineEnd + 1);
+      if (!line) continue;
+      const message = JSON.parse(line);
+      const resolver = pending.get(message.id);
+      if (resolver) {
+        pending.delete(message.id);
+        resolver(message);
+      }
+    }
+  });
+
+  let nextId = 1;
+  return {
+    child,
+    request(method, params = {}) {
+      const id = nextId++;
+      const message = { jsonrpc: '2.0', id, method, params };
+      child.stdin.write(`${JSON.stringify(message)}\n`);
+      return new Promise((resolvePromise) => pending.set(id, resolvePromise));
+    },
+    notify(method, params = {}) {
+      child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', method, params })}\n`);
+    },
+    close() {
+      child.kill();
+    },
+  };
+}
+
 // Imports optional runner helpers for direct regression checks.
 async function loadOptionalHelperExports() {
   const helperModules = {
@@ -94,6 +149,8 @@ async function loadOptionalHelperExports() {
     claudeRunner: 'claude_runner.mjs',
     crossAgentHelp: 'cross_agent_help.mjs',
     agentRunnerContract: 'agent_runner_contract.mjs',
+    agentEngineDelegation: 'agent_engine_delegation.mjs',
+    delegateRunner: 'delegate_runner.mjs',
   };
 
   const exportsByModule = {};
@@ -128,6 +185,20 @@ function createFakeSpawn({ stdout = '', stderr = '', code = 0, delayMs = 0, neve
       }
     }, delayMs);
     return child;
+  };
+}
+
+function createCountingFakeSpawn(options = {}) {
+  const fakeSpawn = createFakeSpawn(options);
+  let count = 0;
+  return {
+    spawnImpl(...args) {
+      count += 1;
+      return fakeSpawn(...args);
+    },
+    get count() {
+      return count;
+    },
   };
 }
 
@@ -246,6 +317,368 @@ function runSupervisorModuleTests() {
   }
 }
 
+function runCli(args, cwd = process.cwd()) {
+  return new Promise((resolvePromise) => {
+    const child = spawn(process.execPath, [cliPath, ...args], {
+      cwd,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
+    child.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
+    child.on('close', (code, signal) => resolvePromise({ code, signal, stdout, stderr }));
+  });
+}
+
+async function runRegistrySyncTests() {
+  const workspace = mkdtempSync(resolve(tmpdir(), 'qe-registry-selftest-'));
+  try {
+    const registryPath = join(workspace, 'registry.json');
+    const paths = {
+      claude: join(workspace, 'claude.json'),
+      codex: join(workspace, 'config.toml'),
+      gemini: join(workspace, 'settings.json'),
+    };
+    const windowsServerPath = 'C:\\Users\\Dev User\\AppData\\Roaming\\npm\\node_modules\\@inho-team\\qe-mcp\\scripts\\qe_mcp_server.mjs';
+    writeRegistry(registryPath, {
+      version: 1,
+      servers: {
+        qeExpertLibrary: {
+          transport: 'stdio',
+          command: 'C:\\Program Files\\nodejs\\node.exe',
+          args: [windowsServerPath],
+          cwd: 'C:\\Users\\Dev User\\AppData\\Roaming\\npm\\node_modules\\@inho-team\\qe-mcp',
+          env: { QE_TEST: 'a"b\\c' },
+          trust: true,
+          enabledClients: ['claude', 'codex', 'gemini'],
+        },
+      },
+    });
+
+    syncRegistryToClients({ registryPath, clients: ['claude', 'codex', 'gemini'], paths });
+    const claude = JSON.parse(readFileSync(paths.claude, 'utf8'));
+    const gemini = JSON.parse(readFileSync(paths.gemini, 'utf8'));
+    const codex = readFileSync(paths.codex, 'utf8');
+    if (claude.mcpServers?.qeExpertLibrary?.type !== 'stdio') {
+      throw new Error('claude MCP sync omitted type=stdio');
+    }
+    if (claude.mcpServers.qeExpertLibrary.args[0] !== windowsServerPath) {
+      throw new Error('claude MCP sync changed Windows-style server path');
+    }
+    if (gemini.mcpServers?.qeExpertLibrary?.trust !== true) {
+      throw new Error('gemini MCP sync omitted trust flag');
+    }
+    if (!codex.includes('C:\\\\Program Files\\\\nodejs\\\\node.exe') || !codex.includes('QE_TEST = "a\\"b\\\\c"')) {
+      throw new Error('codex MCP sync did not TOML-escape Windows path/env values');
+    }
+
+    const firstInit = await runCli(['init-registry', '--registry', registryPath, '--force'], workspace);
+    const secondInit = await runCli(['init-registry', '--registry', registryPath], workspace);
+    if (firstInit.code !== 0 || secondInit.code !== 0) {
+      throw new Error(`init-registry should be idempotent (first=${firstInit.code}, second=${secondInit.code})`);
+    }
+    const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+    if (!registry.servers?.qeExpertLibrary) {
+      throw new Error('init-registry did not write qeExpertLibrary');
+    }
+    writeRegistry(registryPath, {
+      version: 1,
+      servers: {
+        qeExpertLibrary: {
+          transport: 'stdio',
+          command: 'custom-node',
+          args: ['custom-server.mjs'],
+        },
+      },
+    });
+    const preserveInit = await runCli(['init-registry', '--registry', registryPath], workspace);
+    const preserved = JSON.parse(readFileSync(registryPath, 'utf8'));
+    if (preserveInit.code !== 0 || preserved.servers.qeExpertLibrary.command !== 'custom-node') {
+      throw new Error('init-registry rewrote existing registry without --force');
+    }
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+}
+
+function hasDelegationDirection(value) {
+  if (!value || typeof value !== 'object') return false;
+  if (
+    typeof value.origin_engine === 'string' &&
+    typeof value.target_engine === 'string' &&
+    (typeof value.delegation_direction === 'string' || typeof value.direction === 'string') &&
+    'call_depth' in value
+  ) {
+    return true;
+  }
+  return Object.values(value).some((item) => hasDelegationDirection(item));
+}
+
+function assertNoRawLifecycleCapture(record, label) {
+  const text = JSON.stringify(record);
+  const rawFields = new Set(['raw_prompt', 'raw_stdout', 'raw_stderr', 'prompt', 'stdout', 'stderr']);
+  const assertNoRawField = (value) => {
+    if (!value || typeof value !== 'object') return;
+    for (const [key, nestedValue] of Object.entries(value)) {
+      if (rawFields.has(key)) {
+        throw new Error(`${label} persisted raw lifecycle field ${key}`);
+      }
+      assertNoRawField(nestedValue);
+    }
+  };
+  assertNoRawField(record);
+  for (const secret of ['PHASE2_RAW_PROMPT_SECRET', 'PHASE2_RAW_STDOUT_SECRET', 'PHASE2_RAW_STDERR_SECRET']) {
+    if (text.includes(secret)) {
+      throw new Error(`${label} persisted raw lifecycle capture ${secret}`);
+    }
+  }
+}
+
+function readLifecycleRecordFromResult(result, helperExports, stateRoot = process.cwd()) {
+  const lifecycle = result?.metadata?.lifecycle || {};
+  const runId = lifecycle.run_id;
+  if (!runId) return null;
+  const recordPath =
+    typeof helperExports?.agentEngineDelegation?.getLifecycleRecordPath === 'function'
+      ? helperExports.agentEngineDelegation.getLifecycleRecordPath(runId, stateRoot)
+      : resolve(stateRoot, '.qe', 'state', 'agent-runs', `${runId}.json`);
+  const resolved = resolve(recordPath);
+  if (!resolved.includes(`${resolve(stateRoot, '.qe', 'state')}`)) {
+    throw new Error(`lifecycle record escaped QE state namespace: ${recordPath}`);
+  }
+  return JSON.parse(readFileSync(resolved, 'utf8'));
+}
+
+function assertEngineDelegationExports(engineModule) {
+  if (!engineModule) {
+    throw new Error('agent_engine_delegation module missing');
+  }
+  const exportNames = Object.keys(engineModule);
+  const hasExportMatching = (pattern) => exportNames.some((name) => pattern.test(name));
+  if (!hasExportMatching(/direction/i)) {
+    throw new Error('agent_engine_delegation missing direction helper export');
+  }
+  if (!hasExportMatching(/prompt|envelope/i)) {
+    throw new Error('agent_engine_delegation missing prompt/envelope helper export');
+  }
+  if (!hasExportMatching(/lifecycle|record/i)) {
+    throw new Error('agent_engine_delegation missing lifecycle helper export');
+  }
+  if (!hasExportMatching(/capabil|route|decision|delegate/i)) {
+    throw new Error('agent_engine_delegation missing capability/decision helper export');
+  }
+}
+
+async function runDelegationEngineCoreTests(helperExports) {
+  assertEngineDelegationExports(helperExports.agentEngineDelegation);
+
+  if (typeof helperExports.codexRunner?.runCodexAgent !== 'function') {
+    throw new Error('codex runner helper missing for delegation engine compatibility test');
+  }
+
+  const mismatchSpawn = createCountingFakeSpawn({
+    stdout: '{"type":"result","summary":"should not spawn","result":"should not spawn"}\n',
+  });
+  const mismatch = await helperExports.codexRunner.runCodexAgent(
+    {
+      prompt: 'capability mismatch probe',
+      output_mode: 'xml',
+      origin_engine: 'claude',
+      intent: 'capability-mismatch-selftest',
+      timeout_ms: 1000,
+    },
+    { spawnImpl: mismatchSpawn.spawnImpl }
+  );
+  if (mismatch.status !== 'error' || mismatch.error?.category !== 'policy_denied') {
+    throw new Error('capability mismatch did not return structured denial');
+  }
+  if (mismatchSpawn.count !== 0) {
+    throw new Error('capability mismatch launched subprocess before denial');
+  }
+
+  const successSpawn = createCountingFakeSpawn({
+    stdout: '{"type":"result","summary":"PHASE2_RAW_STDOUT_SECRET","result":"delegation ok"}\n',
+    stderr: 'PHASE2_RAW_STDERR_SECRET\n',
+  });
+  const delegated = await helperExports.codexRunner.runCodexAgent(
+    {
+      task: 'PHASE2_RAW_PROMPT_SECRET',
+      origin_engine: 'claude',
+      intent: 'legacy-task-alias-selftest',
+      timeout_ms: 1000,
+      call_chain_id: 'phase2-selftest-chain',
+    },
+    { spawnImpl: successSpawn.spawnImpl }
+  );
+  if (delegated.status !== 'ok' || delegated.summary !== 'PHASE2_RAW_STDOUT_SECRET') {
+    throw new Error('delegation engine broke legacy task alias compatibility');
+  }
+  if (successSpawn.count !== 1) {
+    throw new Error('accepted delegation did not launch exactly one subprocess');
+  }
+  const lifecycleRecord = readLifecycleRecordFromResult(delegated, helperExports);
+  if (!hasDelegationDirection(delegated.metadata) && !hasDelegationDirection(lifecycleRecord)) {
+    throw new Error('delegation direction metadata missing from result/lifecycle');
+  }
+  if (!lifecycleRecord) {
+    throw new Error('delegation lifecycle record missing from run id');
+  }
+  assertNoRawLifecycleCapture(lifecycleRecord, 'delegation lifecycle record');
+  if (
+    delegated.metadata?.lifecycle?.state_path ||
+    delegated.metadata?.lifecycle?.record_path ||
+    delegated.metadata?.lifecycle?.recordPath
+  ) {
+    throw new Error('delegation lifecycle result leaked a local state path');
+  }
+  const delegatedRunId = delegated.metadata?.lifecycle?.run_id;
+  if (delegatedRunId && typeof helperExports.agentEngineDelegation?.getLifecycleRecordPath === 'function') {
+    rmSync(helperExports.agentEngineDelegation.getLifecycleRecordPath(delegatedRunId), { force: true });
+  }
+
+  if (typeof helperExports.delegateRunner?.runDelegateAgent !== 'function') {
+    throw new Error('delegate runner helper missing for public engine surface test');
+  }
+  const publicWorkspace = mkdtempSync(resolve(tmpdir(), 'qe-public-engine-selftest-'));
+  try {
+    const codexDelegateSpawn = createCountingFakeSpawn({
+      stdout: '{"type":"result","summary":"delegate codex ok","result":"delegate codex ok"}\n',
+    });
+    const codexDelegate = await helperExports.delegateRunner.runDelegateAgent(
+      {
+        target_engine: 'codex',
+        prompt: 'PUBLIC_ENGINE_RAW_PROMPT_SECRET',
+        origin_engine: 'selftest',
+        timeout_ms: 1000,
+      },
+      { spawnImpl: codexDelegateSpawn.spawnImpl, stateRoot: publicWorkspace }
+    );
+    if (codexDelegate.status !== 'ok' || codexDelegate.metadata?.target_engine !== 'codex') {
+      throw new Error('qe_delegate_agent helper did not route Codex target through engine');
+    }
+    if (codexDelegateSpawn.count !== 1) {
+      throw new Error('qe_delegate_agent Codex helper did not launch exactly once');
+    }
+    const claudeDelegateSpawn = createCountingFakeSpawn({
+      stdout: JSON.stringify({ summary: 'delegate claude ok', result: 'delegate claude ok' }),
+    });
+    const claudeDelegate = await helperExports.delegateRunner.runDelegateAgent(
+      {
+        target_engine: 'claude',
+        prompt: 'delegate claude prompt',
+        origin_engine: 'selftest',
+        timeout_ms: 1000,
+      },
+      { spawnImpl: claudeDelegateSpawn.spawnImpl, stateRoot: publicWorkspace }
+    );
+    if (claudeDelegate.status !== 'ok' || claudeDelegate.metadata?.target_engine !== 'claude') {
+      throw new Error('qe_delegate_agent helper did not route Claude target through engine');
+    }
+    const deniedDelegateSpawn = createCountingFakeSpawn({
+      stdout: '{"type":"result","summary":"should not spawn","result":"should not spawn"}\n',
+    });
+    const deniedDelegate = await helperExports.delegateRunner.runDelegateAgent(
+      {
+        target_engine: 'claude',
+        prompt: 'PUBLIC_ENGINE_DENIED_PROMPT_SECRET',
+        output_mode: 'jsonl',
+        origin_engine: 'selftest',
+        timeout_ms: 1000,
+      },
+      { spawnImpl: deniedDelegateSpawn.spawnImpl, stateRoot: publicWorkspace }
+    );
+    if (deniedDelegate.status !== 'error' || deniedDelegate.error?.category !== 'policy_denied') {
+      throw new Error('qe_delegate_agent helper did not return structured denial');
+    }
+    if (deniedDelegateSpawn.count !== 0) {
+      throw new Error('qe_delegate_agent helper denial launched subprocess');
+    }
+    const statusProjection = await helperExports.agentEngineDelegation.getAgentRunProjection(
+      codexDelegate.metadata.lifecycle.run_id,
+      { stateRoot: publicWorkspace }
+    );
+    if (
+      statusProjection.direction?.target_engine !== 'codex' ||
+      statusProjection.request?.prompt_sha256 === undefined ||
+      JSON.stringify(statusProjection).includes('PUBLIC_ENGINE_RAW_PROMPT_SECRET') ||
+      JSON.stringify(statusProjection).includes(process.cwd()) ||
+      Object.hasOwn(statusProjection.request || {}, 'cwd')
+    ) {
+      throw new Error('agent run projection leaked raw prompt/cwd or missed direction metadata');
+    }
+    const deniedProjection = await helperExports.agentEngineDelegation.getAgentRunProjection(
+      deniedDelegate.metadata.lifecycle.run_id,
+      { stateRoot: publicWorkspace }
+    );
+    if (deniedProjection.status !== 'denied' || deniedProjection.decision?.accepted !== false) {
+      throw new Error('agent run projection did not expose denied lifecycle');
+    }
+    try {
+      await helperExports.agentEngineDelegation.getAgentRunProjection('../escape', { stateRoot: publicWorkspace });
+      throw new Error('agent run projection allowed path traversal run_id');
+    } catch (error) {
+      if (!/invalid lifecycle run id/.test(error.message)) throw error;
+    }
+  } finally {
+    rmSync(publicWorkspace, { recursive: true, force: true });
+  }
+
+  const raceWorkspace = mkdtempSync(resolve(tmpdir(), 'qe-agent-lifecycle-race-'));
+  try {
+    const run = await helperExports.agentEngineDelegation.createDelegationRun({
+      request: {
+        engine: 'codex',
+        prompt: 'race probe',
+        cwd: process.cwd(),
+        origin_engine: 'selftest',
+        output_mode: 'jsonl',
+        mcp_policy: 'none',
+        allow_writes: false,
+        timeout_ms: 1000,
+        max_output_bytes: 4000,
+        call_depth: 0,
+        call_chain_id: 'phase2-race-chain',
+        max_turns: 1,
+        max_budget_usd: 0.05,
+        max_concurrent_runs: 1,
+        sandbox_mode: 'read-only',
+        permission_mode: 'plan',
+      },
+      targetEngine: 'codex',
+      command: 'codex',
+      options: { stateRoot: raceWorkspace, spawnImpl: successSpawn.spawnImpl },
+    });
+    await Promise.all([
+      helperExports.agentEngineDelegation.transitionDelegationRun(run, 'started', { reason: 'race-a' }),
+      helperExports.agentEngineDelegation.transitionDelegationRun(run, 'failed', { reason: 'race-b' }),
+    ]);
+    const raced = JSON.parse(readFileSync(run.path, 'utf8'));
+    const reasons = raced.transitions.map((transition) => transition.reason).filter(Boolean);
+    if (!reasons.includes('race-a') || !reasons.includes('race-b')) {
+      throw new Error('delegation lifecycle transition queue dropped concurrent transitions');
+    }
+  } finally {
+    rmSync(raceWorkspace, { recursive: true, force: true });
+  }
+
+  const corruptWorkspace = mkdtempSync(resolve(tmpdir(), 'qe-agent-lifecycle-corrupt-'));
+  try {
+    const corruptDir = resolve(corruptWorkspace, '.qe', 'state', 'agent-runs');
+    mkdirSync(corruptDir, { recursive: true });
+    writeFileSync(join(corruptDir, 'corrupt-run.json'), '{"run_id":"wrong","status":"completed"}\n');
+    try {
+      await helperExports.agentEngineDelegation.getAgentRunProjection('corrupt-run', { stateRoot: corruptWorkspace });
+      throw new Error('agent run projection accepted malformed lifecycle state');
+    } catch (error) {
+      if (error.category !== 'corrupt_state') throw error;
+    }
+  } finally {
+    rmSync(corruptWorkspace, { recursive: true, force: true });
+  }
+}
+
 // Verifies runner helpers without launching real Codex or Claude CLIs.
 async function runRunnerModuleTests() {
   const env = sanitizeEnv({
@@ -336,6 +769,43 @@ async function runRunnerModuleTests() {
     throw new Error('normalizeRequest allowed child MCP config');
   } catch (error) {
     if (error.category !== 'mcp_config_rejected') throw error;
+  }
+
+  try {
+    normalizeAgentRunRequest({ prompt: 'mcp', engine: 'codex', mcp_policy: 'allowlist' });
+    throw new Error('normalizeAgentRunRequest allowed child MCP config');
+  } catch (error) {
+    if (error.category !== 'mcp_config_rejected') throw error;
+  }
+
+  try {
+    normalizeRequest({ task: 'parallel', max_concurrent_runs: 2 }, 'codex');
+    throw new Error('normalizeRequest allowed parallel runner calls');
+  } catch (error) {
+    if (error.category !== 'policy_denied') throw error;
+  }
+
+  try {
+    normalizeRequest({ task: 'claude unsafe', permission_mode: 'default' }, 'claude');
+    throw new Error('normalizeRequest allowed unsupported Claude permission mode');
+  } catch (error) {
+    if (error.category !== 'policy_denied') throw error;
+  }
+
+  const aliasRequest = normalizeRequest({ task: 'legacy alias' }, 'codex');
+  if (aliasRequest.prompt !== 'legacy alias' || aliasRequest.output_mode !== 'jsonl') {
+    throw new Error('normalizeRequest did not preserve legacy task alias');
+  }
+
+  const schemas = buildToolSchemas();
+  if (
+    schemas.qe_run_claude_agent.properties.permission_mode.enum.length !== 1 ||
+    schemas.qe_run_claude_agent.properties.permission_mode.enum[0] !== 'plan' ||
+    schemas.qe_run_claude_agent.properties.mcp_policy.enum[0] !== 'none' ||
+    schemas.qe_run_codex_agent.properties.max_concurrent_runs.maximum !== 1 ||
+    !schemas.qe_run_codex_agent.properties.task
+  ) {
+    throw new Error('runner tool schemas drifted from canonical contract');
   }
 
   const notInstalled = parseOutput({
@@ -445,7 +915,75 @@ function assertAgentRunResultShape(result, label) {
 async function main() {
   await runRunnerModuleTests();
   runSupervisorModuleTests();
+  await runRegistrySyncTests();
   const helperExports = await loadOptionalHelperExports();
+  await runDelegationEngineCoreTests(helperExports);
+  const mcpProjectionRun =
+    typeof helperExports.delegateRunner?.runDelegateAgent === 'function'
+      ? await helperExports.delegateRunner.runDelegateAgent(
+          {
+            target_engine: 'codex',
+            prompt: 'PUBLIC_ENGINE_MCP_RAW_PROMPT_SECRET',
+            origin_engine: 'selftest',
+            timeout_ms: 1000,
+          },
+          {
+            spawnImpl: createFakeSpawn({
+              stdout: '{"type":"result","summary":"PUBLIC_ENGINE_MCP_RAW_STDOUT_SECRET","result":"ok"}\n',
+            }),
+          }
+        )
+      : null;
+  const lineClient = createLineClient();
+  try {
+    lineClient.child.stdin.write('{not-json}\n');
+    const lineInit = await lineClient.request('initialize', {
+      protocolVersion: '2025-11-25',
+      capabilities: { roots: {}, elicitation: {} },
+      clientInfo: { name: 'claude-code', version: '2.1.170' },
+    });
+    if (lineInit.result?.protocolVersion !== '2025-03-26') {
+      throw new Error('newline JSON-RPC initialize framing failed after malformed line');
+    }
+  } finally {
+    lineClient.close();
+  }
+  const mismatchClient = createLineClient();
+  try {
+    const mismatchInit = await mismatchClient.request('initialize', {
+      protocolVersion: '2099-01-01',
+      capabilities: {},
+    });
+    if (mismatchInit.result?.protocolVersion !== '2025-03-26') {
+      throw new Error('initialize should negotiate to supported protocol version');
+    }
+  } finally {
+    mismatchClient.close();
+  }
+  const resourcesOnlyClient = createLineClient({ QE_MCP_EXPOSE_RESOURCES: '1', QE_MCP_EXPOSE_PROMPTS: '' });
+  try {
+    const resourcesOnly = await resourcesOnlyClient.request('initialize', {
+      protocolVersion: '2025-03-26',
+      capabilities: {},
+    });
+    if (!resourcesOnly.result?.capabilities?.resources || resourcesOnly.result?.capabilities?.prompts) {
+      throw new Error('resource-only capability flag exposed wrong optional surfaces');
+    }
+  } finally {
+    resourcesOnlyClient.close();
+  }
+  const promptsOnlyClient = createLineClient({ QE_MCP_EXPOSE_RESOURCES: '', QE_MCP_EXPOSE_PROMPTS: '1' });
+  try {
+    const promptsOnly = await promptsOnlyClient.request('initialize', {
+      protocolVersion: '2025-03-26',
+      capabilities: {},
+    });
+    if (promptsOnly.result?.capabilities?.resources || !promptsOnly.result?.capabilities?.prompts) {
+      throw new Error('prompt-only capability flag exposed wrong optional surfaces');
+    }
+  } finally {
+    promptsOnlyClient.close();
+  }
   const client = createClient();
   const supervisorWorkspace = mkdtempSync(resolve(tmpdir(), 'qe-supervisor-mcp-selftest-'));
   try {
@@ -483,6 +1021,18 @@ async function main() {
     });
     const crossAgentHelp = await client.request('tools/call', {
       name: 'qe_cross_agent_help',
+    });
+    const agentRunStatus = await client.request('tools/call', {
+      name: 'qe_agent_run_status',
+      arguments: { run_id: mcpProjectionRun?.metadata?.lifecycle?.run_id || 'missing' },
+    });
+    const agentRunRead = await client.request('tools/call', {
+      name: 'qe_agent_run_read',
+      arguments: { run_id: mcpProjectionRun?.metadata?.lifecycle?.run_id || 'missing' },
+    });
+    const agentRunTraversal = await client.request('tools/call', {
+      name: 'qe_agent_run_read',
+      arguments: { run_id: '../escape' },
     });
     const maintenanceCatalog = await client.request('tools/call', {
       name: 'qe_list_maintenance_jobs',
@@ -623,6 +1173,9 @@ async function main() {
       'qe_run_codex_agent',
       'qe_run_claude_agent',
       'qe_cross_agent_help',
+      'qe_delegate_agent',
+      'qe_agent_run_status',
+      'qe_agent_run_read',
       'qe_list_maintenance_jobs',
       'qe_run_maintenance_job',
       'qe_get_maintenance_job_status',
@@ -633,6 +1186,32 @@ async function main() {
       'qe_supervisor_specs',
     ]) {
       if (!toolNames.includes(name)) throw new Error(`tools/list missing ${name}`);
+    }
+    const delegateTool = tools.result?.tools?.find((tool) => tool.name === 'qe_delegate_agent');
+    if (
+      delegateTool?.inputSchema?.properties?.target_engine?.enum?.join(',') !== 'claude,codex' ||
+      !delegateTool?.inputSchema?.required?.includes('target_engine') ||
+      !Array.isArray(delegateTool?.inputSchema?.anyOf)
+    ) {
+      throw new Error('qe_delegate_agent schema missing bounded target_engine enum or required input contract');
+    }
+    if (
+      agentRunStatus.result?.structuredContent?.direction?.target_engine !== 'codex' ||
+      agentRunStatus.result?.structuredContent?.transitions !== undefined
+    ) {
+      throw new Error('qe_agent_run_status did not return compact lifecycle status');
+    }
+    const agentRunReadText = JSON.stringify(agentRunRead.result?.structuredContent || {});
+    if (
+      agentRunRead.result?.structuredContent?.direction?.target_engine !== 'codex' ||
+      !Array.isArray(agentRunRead.result?.structuredContent?.transitions) ||
+      agentRunReadText.includes('PUBLIC_ENGINE_MCP_RAW_PROMPT_SECRET') ||
+      agentRunReadText.includes('PUBLIC_ENGINE_MCP_RAW_STDOUT_SECRET')
+    ) {
+      throw new Error('qe_agent_run_read did not return redacted lifecycle projection');
+    }
+    if (!agentRunTraversal.error) {
+      throw new Error('qe_agent_run_read allowed invalid run_id traversal');
     }
     const resourceUris = resources.result?.resources?.map((resource) => resource.uri) || [];
     if (!resourceUris.includes('qe://experts/catalog')) {
@@ -795,7 +1374,9 @@ async function main() {
       const helperSchemas = helperExports.agentRunnerContract.buildToolSchemas();
       if (
         !helperSchemas?.qe_run_codex_agent?.properties?.task ||
-        !helperSchemas?.qe_run_claude_agent?.properties?.task
+        !helperSchemas?.qe_run_claude_agent?.properties?.task ||
+        helperSchemas?.qe_run_claude_agent?.properties?.permission_mode?.enum?.join(',') !== 'plan' ||
+        helperSchemas?.qe_run_codex_agent?.properties?.mcp_policy?.enum?.join(',') !== 'none'
       ) {
         throw new Error('buildToolSchemas export did not return an object');
       }
@@ -827,6 +1408,13 @@ async function main() {
       throw new Error('qe_run_codex_agent helper-backed negative path did not return structured error');
     }
     if (typeof helperExports.codexRunner?.runCodexAgent === 'function') {
+      const legacyTaskCodex = await helperExports.codexRunner.runCodexAgent(
+        { task: 'legacy task alias', timeout_ms: 1000 },
+        { spawnImpl: createFakeSpawn({ stdout: '{"type":"result","summary":"alias ok","result":"alias ok"}\n' }) }
+      );
+      if (legacyTaskCodex.status !== 'ok' || legacyTaskCodex.summary !== 'alias ok') {
+        throw new Error('qe_run_codex_agent did not preserve legacy task alias');
+      }
       const unsafeCodex = await helperExports.codexRunner.runCodexAgent({
         prompt: 'policy probe',
         sandbox_mode: 'danger-full-access',
@@ -844,7 +1432,7 @@ async function main() {
     if (typeof helperExports.claudeRunner?.runClaudeAgent === 'function') {
       const unsafeClaude = await helperExports.claudeRunner.runClaudeAgent({
         prompt: 'policy probe',
-        permission_mode: 'bypassPermissions',
+        permission_mode: 'default',
       });
       if (unsafeClaude.status !== 'error' || unsafeClaude.error?.category !== 'policy_denied') {
         throw new Error('qe_run_claude_agent allowed unsafe permission policy');
@@ -854,6 +1442,10 @@ async function main() {
     console.log('qe_mcp_server_ok');
   } finally {
     client.close();
+    const mcpProjectionRunId = mcpProjectionRun?.metadata?.lifecycle?.run_id;
+    if (mcpProjectionRunId && typeof helperExports.agentEngineDelegation?.getLifecycleRecordPath === 'function') {
+      rmSync(helperExports.agentEngineDelegation.getLifecycleRecordPath(mcpProjectionRunId), { force: true });
+    }
     rmSync(supervisorWorkspace, { recursive: true, force: true });
   }
 }

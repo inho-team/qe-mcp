@@ -144,10 +144,14 @@ async function main() {
   }
 
   if (command === 'init-registry') {
+    const defaults = defaultRegistry();
     if (existsSync(options.registry) && !options.force) {
-      throw new Error(`Registry already exists: ${options.registry}. Use --force to overwrite.`);
+      readRegistry(options.registry);
+      console.log(`QE MCP registry already exists: ${options.registry}`);
+      console.log('Use --force to replace it with defaults.');
+      return;
     }
-    writeRegistry(options.registry, defaultRegistry());
+    writeRegistry(options.registry, defaults);
     console.log(`Initialized QE MCP registry: ${options.registry}`);
     return;
   }
