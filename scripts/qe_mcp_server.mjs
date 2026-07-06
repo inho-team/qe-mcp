@@ -426,7 +426,7 @@ function listTools() {
     {
       name: 'qe_read_expert',
       description:
-        'Read one QE expert by name. Does not accept raw file paths. With format:"prompt" it returns a bounded prompt payload that applies the expert to a task (task/mode apply here).',
+        'Read one QE expert by name. Does not accept raw file paths. With format:"prompt" it returns a bounded prompt payload that applies the expert to a task (task/mode apply here). With section it returns only the matching markdown section (raw format only).',
       inputSchema: {
         type: 'object',
         required: ['name'],
@@ -435,6 +435,7 @@ function listTools() {
           includeReferences: { type: 'boolean' },
           maxBytes: { type: 'integer', minimum: 200, maximum: 24000 },
           format: { type: 'string', enum: ['raw', 'prompt'] },
+          section: { type: 'string' },
           task: { type: 'string' },
           mode: { type: 'string', enum: ['apply', 'review', 'plan'] },
         },
@@ -518,6 +519,9 @@ async function callTool(name, args = {}) {
 
   if (name === 'qe_read_expert') {
     if (args.format === 'prompt') {
+      if (args.section) {
+        throw new Error('section is not supported with format:"prompt" (prompt payloads are whole-expert). Drop section or use format:"raw".');
+      }
       return toolResponse(
         buildExpertPrompt({ expert: args.name, task: args.task, mode: args.mode, maxBytes: args.maxBytes }),
       );

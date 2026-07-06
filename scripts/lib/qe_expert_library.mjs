@@ -307,11 +307,82 @@ export function findExpert(name) {
   return expert;
 }
 
-export function readExpert({ name, includeReferences = false, maxBytes = DEFAULT_READ_BYTES } = {}) {
+// Parse markdown ATX headers that sit OUTSIDE fenced code blocks. A `#` line
+// inside a ``` or ~~~ fence (e.g. a shell/python comment) is not a header.
+// Returns the file lines plus the located headers with their line indices.
+function parseMarkdownHeaders(text) {
+  const lines = text.split('\n');
+  const headers = [];
+  let fenceChar = null;
+  for (let i = 0; i < lines.length; i += 1) {
+    const fenceMatch = lines[i].match(/^\s*(`{3,}|~{3,})/);
+    if (fenceMatch) {
+      const marker = fenceMatch[1][0];
+      if (fenceChar === null) fenceChar = marker;
+      else if (fenceChar === marker) fenceChar = null;
+      continue;
+    }
+    if (fenceChar !== null) continue;
+    const header = lines[i].match(/^(#{1,6})\s+(.*\S)\s*$/);
+    if (header) headers.push({ level: header[1].length, title: header[2].trim(), line: i });
+  }
+  return { lines, headers };
+}
+
+// Extract a single markdown section by fuzzy title match. The section runs from
+// its header to the next header of equal-or-higher level (nested lower headers
+// are included). Returns { block, title } on a unique match, { matches } for
+// disambiguation, or { available } when nothing matched.
+function extractSection(text, wanted) {
+  const { lines, headers } = parseMarkdownHeaders(text);
+  const want = normalizeName(wanted);
+  const exact = headers.filter((h) => normalizeName(h.title) === want);
+  const matches = exact.length > 0 ? exact : headers.filter((h) => normalizeName(h.title).includes(want));
+  if (matches.length === 0) return { available: headers.map((h) => h.title) };
+  if (matches.length > 1) return { matches: matches.map((h) => h.title) };
+  const selected = matches[0];
+  let endLine = lines.length;
+  for (const h of headers) {
+    if (h.line > selected.line && h.level <= selected.level) { endLine = h.line; break; }
+  }
+  return { title: selected.title, block: lines.slice(selected.line, endLine).join('\n') };
+}
+
+function boundText(str, maxBytes) {
+  const limit = clampInt(maxBytes, DEFAULT_READ_BYTES, 200, MAX_READ_BYTES);
+  const buf = Buffer.from(str, 'utf8');
+  const slice = buf.subarray(0, limit);
+  return { text: slice.toString('utf8'), truncated: buf.length > limit, bytes: Math.min(buf.length, limit), totalBytes: buf.length };
+}
+
+export function readExpert({ name, includeReferences = false, maxBytes = DEFAULT_READ_BYTES, section = null } = {}) {
   const expert = findExpert(name);
   const root = rootForExpert(expert);
   const sourcePath = resolveExpertPath(expert.sourcePath, root);
-  const content = readTextBounded(sourcePath, maxBytes);
+  let content;
+  let selectedSection = null;
+  if (section) {
+    // Parse the WHOLE file (the 50KB size gate keeps this bounded) before applying
+    // maxBytes, so sections near the end are not lost to an early read cap.
+    const full = readFileSync(sourcePath, 'utf8');
+    const result = extractSection(full, section);
+    if (result.matches) {
+      return {
+        name: expert.name,
+        section: null,
+        matches: result.matches,
+        note: 'Multiple sections matched; retry with a more specific section title.',
+      };
+    }
+    if (!result.block) {
+      const available = (result.available || []).join(' | ') || '(no headers)';
+      throw new Error(`Unknown section "${section}". Available sections: ${available}`);
+    }
+    selectedSection = result.title;
+    content = boundText(result.block, maxBytes);
+  } else {
+    content = readTextBounded(sourcePath, maxBytes);
+  }
   const references = includeReferences
     ? (expert.references || []).slice(0, 10).map((ref) => {
         const refPath = resolveExpertPath(ref.path, root);
@@ -324,6 +395,7 @@ export function readExpert({ name, includeReferences = false, maxBytes = DEFAULT
     summary: expert.summary,
     reviewStatus: expert.review?.status || 'unreviewed',
     sourcePath: relative(root.repoRoot, sourcePath).replace(/\\/g, '/'),
+    section: selectedSection,
     content: content.text,
     truncated: content.truncated,
     bytes: content.bytes,

@@ -34,8 +34,9 @@
     "qe:mcp": "node scripts/qe_mcp.mjs",
     "test": "node --test scripts/lib/__tests__/*.test.mjs",
     "build:index": "node scripts/build-expert-index.mjs",
+    "lint:size": "node scripts/check-expert-size.mjs",
     "selftest": "node scripts/selftest_qe_mcp_server.mjs",
     "runner:smoke": "node scripts/smoke_qe_mcp_runner_tools.mjs",
-    "check": "node --check scripts/build-expert-index.mjs && node --check scripts/lib/qe_expert_library.mjs && node --check scripts/lib/qe_mcp_registry.mjs && node --check scripts/lib/agent_runner_common.mjs && node --check scripts/lib/agent_runner_contract.mjs && node --check scripts/lib/agent_engine_delegation.mjs && node --check scripts/lib/agent_output_normalizer.mjs && node --check scripts/lib/agent_subprocess.mjs && node --check scripts/lib/codex_runner.mjs && node --check scripts/lib/claude_runner.mjs && node --check scripts/lib/delegate_runner.mjs && node --check scripts/lib/cross_agent_help.mjs && node --check scripts/lib/state_reaper.mjs && node --check scripts/qe_mcp.mjs && node --check scripts/qe_mcp_server.mjs && node --check scripts/selftest_qe_mcp_server.mjs && node --check scripts/smoke_qe_mcp_runner_tools.mjs"
+    "check": "node --check scripts/check-expert-size.mjs && node --check scripts/build-expert-index.mjs && node --check scripts/lib/qe_expert_library.mjs && node --check scripts/lib/qe_mcp_registry.mjs && node --check scripts/lib/agent_runner_common.mjs && node --check scripts/lib/agent_runner_contract.mjs && node --check scripts/lib/agent_engine_delegation.mjs && node --check scripts/lib/agent_output_normalizer.mjs && node --check scripts/lib/agent_subprocess.mjs && node --check scripts/lib/codex_runner.mjs && node --check scripts/lib/claude_runner.mjs && node --check scripts/lib/delegate_runner.mjs && node --check scripts/lib/cross_agent_help.mjs && node --check scripts/lib/state_reaper.mjs && node --check scripts/qe_mcp.mjs && node --check scripts/qe_mcp_server.mjs && node --check scripts/selftest_qe_mcp_server.mjs && node --check scripts/smoke_qe_mcp_runner_tools.mjs"
   }
 }

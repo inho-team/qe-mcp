@@ -923,9 +923,132 @@ async function runExpertPackTests() {
   }
 }
 
+// Runs a script and resolves its exit code (for gate exit-status assertions).
+function runScript(scriptRelPath, env = {}) {
+  return new Promise((resolvePromise) => {
+    const child = spawn(process.execPath, [resolve(process.cwd(), scriptRelPath)], {
+      cwd: process.cwd(),
+      env: { ...process.env, ...env },
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (c) => { stdout += c.toString(); });
+    child.stderr.on('data', (c) => { stderr += c.toString(); });
+    child.on('close', (code) => resolvePromise({ code, stdout, stderr }));
+  });
+}
+
+// Writes a flat extra-pack fixture whose single expert SKILL.md exercises the
+// fence-aware section parser (nested headers, a code fence containing `#`,
+// and duplicate-prefix headers for disambiguation).
+function writeSectionFixture() {
+  const root = mkdtempSync(resolve(tmpdir(), 'qe-section-fixture-'));
+  const skillDir = join(root, 'experts', 'QSectionFixture');
+  mkdirSync(skillDir, { recursive: true });
+  const fence = '```';
+  const body = [
+    '# QSectionFixture', '', 'Intro text.', '',
+    '## Alpha', '', 'Alpha body line.', '',
+    '### Alpha Sub', '', 'Alpha sub body.', '',
+    '## Beta', '', `${fence}python`, '# This is a comment, not a header', 'value = 1', fence, '',
+    'Beta body after fence.', '',
+    '## Gamma One', '', 'gamma one body.', '',
+    '## Gamma Two', '', 'gamma two body.', '',
+  ].join('\n');
+  writeFileSync(join(skillDir, 'SKILL.md'), `${body}\n`);
+  const index = {
+    schemaVersion: 1,
+    pack: 'extra-experts',
+    experts: [{
+      name: 'QSectionFixture', kind: 'skill', pack: 'extra-experts', domain: 'testing',
+      summary: 'Section parser fixture.', sourcePath: 'experts/QSectionFixture/SKILL.md',
+      references: [], review: { status: 'unreviewed', lastReviewed: null },
+    }],
+    totalExperts: 1,
+  };
+  writeFileSync(join(root, 'extra-index.json'), `${JSON.stringify(index, null, 2)}\n`);
+  return root;
+}
+
+// Verifies the 50 KiB expert-size gate and the fence-aware section reader.
+async function runSectionAndSizeTests() {
+  // (h) size gate: real tree passes.
+  const green = await runScript('scripts/check-expert-size.mjs');
+  if (green.code !== 0) throw new Error(`size gate should pass on the real tree (exit ${green.code}): ${green.stderr}`);
+  // size gate: an oversized fixture fails with exit 1.
+  const bigRoot = mkdtempSync(resolve(tmpdir(), 'qe-size-fixture-'));
+  const bigSkill = join(bigRoot, 'core-experts', 'skills', 'QBig');
+  mkdirSync(bigSkill, { recursive: true });
+  writeFileSync(join(bigSkill, 'SKILL.md'), 'x'.repeat(51201));
+  try {
+    const red = await runScript('scripts/check-expert-size.mjs', { QE_SIZE_PACKS_ROOT: bigRoot });
+    if (red.code !== 1) throw new Error(`size gate should fail on oversized fixture (got exit ${red.code})`);
+    if (!/50 KiB|51200/.test(red.stderr)) throw new Error('size gate failure did not report the limit');
+  } finally {
+    rmSync(bigRoot, { recursive: true, force: true });
+  }
+
+  // Section reader — inject the fixture as an extra pack.
+  const priorRootEnv = process.env.QE_EXTRA_EXPERTS_ROOT;
+  const priorDisableEnv = process.env.QE_DISABLE_EXTRA_PACK;
+  const sectionRoot = writeSectionFixture();
+  delete process.env.QE_DISABLE_EXTRA_PACK;
+  process.env.QE_EXTRA_EXPERTS_ROOT = sectionRoot;
+  try {
+    // (a)/(c) nested section: includes lower headers, stops at next equal-level header.
+    const alpha = readExpert({ name: 'QSectionFixture', section: 'Alpha' });
+    if (alpha.section !== 'Alpha') throw new Error('section Alpha not selected');
+    if (!alpha.content.includes('Alpha body line.') || !alpha.content.includes('Alpha Sub') || !alpha.content.includes('Alpha sub body.')) {
+      throw new Error('Alpha section did not include its nested subsection');
+    }
+    if (alpha.content.includes('Beta body after fence.')) throw new Error('Alpha section leaked into the next section');
+
+    // (b) fence-aware: the `#` inside the python fence is content, not a header/terminator.
+    const beta = readExpert({ name: 'QSectionFixture', section: 'Beta' });
+    if (!beta.content.includes('# This is a comment, not a header') || !beta.content.includes('Beta body after fence.')) {
+      throw new Error('Beta section fence content was mis-parsed');
+    }
+    try {
+      readExpert({ name: 'QSectionFixture', section: 'This is a comment, not a header' });
+      throw new Error('a fenced `#` line was selectable as a section');
+    } catch (error) {
+      if (!/Unknown section/.test(error.message)) throw error;
+    }
+
+    // (d) multiple matches → disambiguation list, no content.
+    const gamma = readExpert({ name: 'QSectionFixture', section: 'Gamma' });
+    if (!Array.isArray(gamma.matches) || gamma.matches.length !== 2 || gamma.content) {
+      throw new Error('ambiguous section did not return matches[] for disambiguation');
+    }
+
+    // (e) no match → error listing available sections.
+    try {
+      readExpert({ name: 'QSectionFixture', section: 'Nonexistent Zzz' });
+      throw new Error('unknown section did not fail');
+    } catch (error) {
+      if (!/Available sections/.test(error.message)) throw error;
+    }
+
+    // (f) no section → whole expert preserved.
+    const whole = readExpert({ name: 'QSectionFixture' });
+    if (whole.section !== null || !whole.content.includes('Intro text.') || !whole.content.includes('gamma two body.')) {
+      throw new Error('whole-expert read was not preserved without a section');
+    }
+  } finally {
+    if (priorRootEnv === undefined) delete process.env.QE_EXTRA_EXPERTS_ROOT;
+    else process.env.QE_EXTRA_EXPERTS_ROOT = priorRootEnv;
+    if (priorDisableEnv === undefined) delete process.env.QE_DISABLE_EXTRA_PACK;
+    else process.env.QE_DISABLE_EXTRA_PACK = priorDisableEnv;
+    rmSync(sectionRoot, { recursive: true, force: true });
+  }
+}
+
 // Runs passive MCP regression checks and active runner negative-path checks.
 async function main() {
   await runExpertPackTests();
+  await runSectionAndSizeTests();
   await runRunnerModuleTests();
   await runRegistrySyncTests();
   const helperExports = await loadOptionalHelperExports();
@@ -1046,6 +1169,10 @@ async function main() {
       name: 'qe_read_expert',
       arguments: { name: '../Qfastapi-expert' },
     });
+    const sectionPromptConflict = await client.request('tools/call', {
+      name: 'qe_read_expert',
+      arguments: { name: 'Qfastapi-expert', format: 'prompt', section: 'Overview' },
+    });
 
     if (init.result?.serverInfo?.name !== 'qe-expert-library') throw new Error('initialize failed');
     if (init.result?.capabilities?.resources || init.result?.capabilities?.prompts) {
@@ -1143,6 +1270,11 @@ async function main() {
     }
     if (!unknownExpert.error) {
       throw new Error('unknown expert did not fail closed');
+    }
+    const sectionPromptError =
+      sectionPromptConflict.error?.message || sectionPromptConflict.result?.structuredContent?.error?.message || '';
+    if (!/section is not supported with format/i.test(sectionPromptError)) {
+      throw new Error('section + format:"prompt" did not raise an explicit error');
     }
 
     if (typeof helperExports.agentRunnerContract?.buildToolSchemas === 'function') {
