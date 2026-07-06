@@ -7,6 +7,19 @@ This repository holds the large optional expert corpus outside
 compact search and recommendation by default, then returns full expert content
 only after an explicit MCP tool or prompt call.
 
+## Migrating 0.2 → 0.3 (breaking)
+
+0.3.0 splits the expert library into a shipped **core** pack (25 experts) and an
+optional **extra** pack (`@inho-team/qe-experts-extra`, 61 experts). By default
+`qe-mcp` now loads only the core-25 — the install payload dropped to ~1.55 MB.
+
+- To restore the full expert set, install the extra pack:
+  `qe-mcp packs install extra-experts` (deploys to `~/.qe/mcp/packs/extra-experts/`,
+  auto-detected), or point `QE_EXTRA_EXPERTS_ROOT` at a checkout.
+- The MCP surface was also slimmed to 10 tools in earlier 0.2.x work; `qe_read_expert`
+  now takes `format` and `section` params (the old `qe_expert_prompt` tool is gone).
+- Check installed packs with `qe-mcp packs status`.
+
 ## Install
 
 ```bash
