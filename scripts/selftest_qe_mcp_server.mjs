@@ -24,6 +24,11 @@ import {
   buildToolSchemas,
   normalizeAgentRunRequest,
 } from './lib/agent_runner_contract.mjs';
+import {
+  listExpertPacks,
+  loadExpertIndex,
+  readExpert,
+} from './lib/qe_expert_library.mjs';
 
 const serverPath = resolve(process.cwd(), 'scripts', 'qe_mcp_server.mjs');
 const cliPath = resolve(process.cwd(), 'scripts', 'qe_mcp.mjs');
@@ -774,8 +779,73 @@ function assertAgentRunResultShape(result, label) {
   }
 }
 
+// Verifies the multi-pack expert loader: core-only default, optional extra pack
+// merge under a registered root, and that unregistered packs stay unreadable.
+async function runExpertPackTests() {
+  const priorEnv = process.env.QE_EXTRA_EXPERTS_ROOT;
+  delete process.env.QE_EXTRA_EXPERTS_ROOT;
+  try {
+    // (a) default load = core pack only (25).
+    const core = loadExpertIndex();
+    if (core.experts.length !== 25) {
+      throw new Error(`expected 25 core experts by default, got ${core.experts.length}`);
+    }
+    const corePacks = listExpertPacks().packs;
+    if (corePacks.length !== 1 || corePacks[0].pack !== 'core-experts' || corePacks[0].count !== 25) {
+      throw new Error('default listExpertPacks should be core-experts:25');
+    }
+    // (d) core expert + references read smoke across a sample of moved-adjacent packs.
+    for (const name of ['Qpython-pro', 'Qreact-expert', 'Qterraform-engineer', 'Qtest-master']) {
+      const read = readExpert({ name, includeReferences: true });
+      if (!read.content || read.content.length === 0) throw new Error(`core read ${name} returned empty content`);
+      for (const ref of read.references) {
+        if (!('text' in ref)) throw new Error(`core ${name} reference ${ref.path} was not read`);
+      }
+    }
+    // Security boundary: an extra-pack expert is unreadable while extra root is unregistered.
+    try {
+      readExpert({ name: 'Qthe-fool' });
+      throw new Error('extra expert was readable without a registered extra root');
+    } catch (error) {
+      if (!/Unknown expert/.test(error.message)) throw error;
+    }
+
+    // (b)/(c) register the extra root and confirm the merge opens exactly that pack.
+    process.env.QE_EXTRA_EXPERTS_ROOT = process.cwd();
+    const merged = loadExpertIndex();
+    if (merged.experts.length !== 92) {
+      throw new Error(`expected 92 merged experts with extra root, got ${merged.experts.length}`);
+    }
+    if (merged.warnings.length !== 0) {
+      throw new Error(`unexpected merge warnings: ${merged.warnings.join('; ')}`);
+    }
+    const mergedPacks = listExpertPacks().packs;
+    if (mergedPacks.length !== 2 || !mergedPacks.some((p) => p.pack === 'extra-experts' && p.count === 67)) {
+      throw new Error('injected listExpertPacks should expose extra-experts:67');
+    }
+    const extraRead = readExpert({ name: 'Qthe-fool', includeReferences: true });
+    if (!extraRead.content || extraRead.content.length === 0) {
+      throw new Error('extra expert read failed under a registered extra root');
+    }
+    if (extraRead.references.some((ref) => !('text' in ref))) {
+      throw new Error('extra expert references were not read under registered root');
+    }
+    // Traversal-style names stay refused even with the extra root registered.
+    try {
+      readExpert({ name: '../Qthe-fool' });
+      throw new Error('traversal-style expert name was not refused');
+    } catch (error) {
+      if (!/Unknown expert/.test(error.message)) throw error;
+    }
+  } finally {
+    if (priorEnv === undefined) delete process.env.QE_EXTRA_EXPERTS_ROOT;
+    else process.env.QE_EXTRA_EXPERTS_ROOT = priorEnv;
+  }
+}
+
 // Runs passive MCP regression checks and active runner negative-path checks.
 async function main() {
+  await runExpertPackTests();
   await runRunnerModuleTests();
   await runRegistrySyncTests();
   const helperExports = await loadOptionalHelperExports();

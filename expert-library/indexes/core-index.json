@@ -1,0 +1,1545 @@
+{
+  "schemaVersion": 1,
+  "pack": "core-experts",
+  "generatedAt": "2026-07-06T00:25:48.641Z",
+  "experts": [
+    {
+      "name": "Qangular-architect",
+      "kind": "skill",
+      "domain": "frontend",
+      "summary": "Generates Angular 17+ standalone components, configures advanced routing with lazy loading and guards, implements NgRx state management, applies RxJS patterns, and optimizes bundle performance. Use when building Angular 17+ applications with standalone components or signals, setting up NgRx stores, establishing RxJS reactive patterns, performance tuning, or writing Angular tests for enterprise apps.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Angular",
+        "Angular 17",
+        "standalone components",
+        "signals",
+        "RxJS",
+        "NgRx",
+        "Angular performance",
+        "Angular routing",
+        "Angular testing",
+        "angular-architect"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 101,
+        "full": 2172
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qangular-architect/SKILL.md",
+      "references": [
+        {
+          "alias": "components",
+          "path": "expert-library/packs/core-experts/skills/Qangular-architect/references/components.md"
+        },
+        {
+          "alias": "ngrx",
+          "path": "expert-library/packs/core-experts/skills/Qangular-architect/references/ngrx.md"
+        },
+        {
+          "alias": "routing",
+          "path": "expert-library/packs/core-experts/skills/Qangular-architect/references/routing.md"
+        },
+        {
+          "alias": "rxjs",
+          "path": "expert-library/packs/core-experts/skills/Qangular-architect/references/rxjs.md"
+        },
+        {
+          "alias": "testing",
+          "path": "expert-library/packs/core-experts/skills/Qangular-architect/references/testing.md"
+        }
+      ]
+    },
+    {
+      "name": "Qcsharp-developer",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Use when building C# applications with .NET 8+, ASP.NET Core APIs, or Blazor web apps. Builds REST APIs using minimal or controller-based routing, configures database access with Entity Framework Core, implements async patterns and cancellation, structures applications with clean architecture using CQRS and MediatR, applies JWT authentication and authorization, optimizes with AOT compilation for cloud-native microservices, and scaffolds Blazor components with state management. Invoke for C#, .NET, ASP.NET Core, Blazor, Entity Framework, EF Core, Minimal API, MAUI, SignalR, clean architecture, CQRS, AOT.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "C#",
+        ".NET",
+        "ASP.NET Core",
+        "Blazor",
+        "Entity Framework",
+        "EF Core",
+        "Minimal API",
+        "MAUI",
+        "SignalR",
+        "csharp-developer"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 153,
+        "full": 2393
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qcsharp-developer/SKILL.md",
+      "references": [
+        {
+          "alias": "aspnet-core",
+          "path": "expert-library/packs/core-experts/skills/Qcsharp-developer/references/aspnet-core.md"
+        },
+        {
+          "alias": "blazor",
+          "path": "expert-library/packs/core-experts/skills/Qcsharp-developer/references/blazor.md"
+        },
+        {
+          "alias": "entity-framework",
+          "path": "expert-library/packs/core-experts/skills/Qcsharp-developer/references/entity-framework.md"
+        },
+        {
+          "alias": "modern-csharp",
+          "path": "expert-library/packs/core-experts/skills/Qcsharp-developer/references/modern-csharp.md"
+        },
+        {
+          "alias": "performance",
+          "path": "expert-library/packs/core-experts/skills/Qcsharp-developer/references/performance.md"
+        }
+      ]
+    },
+    {
+      "name": "Qdevops-engineer",
+      "kind": "skill",
+      "domain": "infra",
+      "summary": "Creates Dockerfiles, configures CI/CD pipelines, writes Kubernetes manifests, and generates Terraform/Pulumi infrastructure templates. Handles deployment automation, GitOps configuration, incident response runbooks, and internal developer platform tooling. Use when setting up CI/CD pipelines, containerizing applications, managing infrastructure as code, deploying to Kubernetes clusters, configuring cloud platforms, automating releases, or responding to production incidents. Invoke for pipelines, Docker, Kubernetes, GitOps, Terraform, GitHub Actions, on-call, or platform engineering.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "DevOps",
+        "CI/CD",
+        "deployment",
+        "Docker",
+        "Kubernetes",
+        "Terraform",
+        "GitHub Actions",
+        "infrastructure",
+        "platform engineering",
+        "incident response",
+        "on-call"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 148,
+        "full": 2243
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qdevops-engineer/SKILL.md",
+      "references": [
+        {
+          "alias": "deployment-strategies",
+          "path": "expert-library/packs/core-experts/skills/Qdevops-engineer/references/deployment-strategies.md"
+        },
+        {
+          "alias": "docker-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qdevops-engineer/references/docker-patterns.md"
+        },
+        {
+          "alias": "github-actions",
+          "path": "expert-library/packs/core-experts/skills/Qdevops-engineer/references/github-actions.md"
+        },
+        {
+          "alias": "incident-response",
+          "path": "expert-library/packs/core-experts/skills/Qdevops-engineer/references/incident-response.md"
+        },
+        {
+          "alias": "kubernetes",
+          "path": "expert-library/packs/core-experts/skills/Qdevops-engineer/references/kubernetes.md"
+        },
+        {
+          "alias": "platform-engineering",
+          "path": "expert-library/packs/core-experts/skills/Qdevops-engineer/references/platform-engineering.md"
+        },
+        {
+          "alias": "release-automation",
+          "path": "expert-library/packs/core-experts/skills/Qdevops-engineer/references/release-automation.md"
+        },
+        {
+          "alias": "terraform-iac",
+          "path": "expert-library/packs/core-experts/skills/Qdevops-engineer/references/terraform-iac.md"
+        }
+      ]
+    },
+    {
+      "name": "Qdjango-expert",
+      "kind": "skill",
+      "domain": "backend",
+      "summary": "Use when building Django web applications or REST APIs with Django REST Framework. Invoke when working with settings.py, models.py, manage.py, or any Django project file. Creates Django models with proper indexes, optimizes ORM queries using select_related/prefetch_related, builds DRF serializers and viewsets, and configures JWT authentication. Trigger terms: Django, DRF, Django REST Framework, Django ORM, Django model, serializer, viewset, Python web.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Django",
+        "DRF",
+        "Django REST Framework",
+        "Django ORM",
+        "Django model",
+        "serializer",
+        "viewset",
+        "Python web",
+        "django-expert"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 114,
+        "full": 2335
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qdjango-expert/SKILL.md",
+      "references": [
+        {
+          "alias": "authentication",
+          "path": "expert-library/packs/core-experts/skills/Qdjango-expert/references/authentication.md"
+        },
+        {
+          "alias": "drf-serializers",
+          "path": "expert-library/packs/core-experts/skills/Qdjango-expert/references/drf-serializers.md"
+        },
+        {
+          "alias": "models-orm",
+          "path": "expert-library/packs/core-experts/skills/Qdjango-expert/references/models-orm.md"
+        },
+        {
+          "alias": "testing-django",
+          "path": "expert-library/packs/core-experts/skills/Qdjango-expert/references/testing-django.md"
+        },
+        {
+          "alias": "viewsets-views",
+          "path": "expert-library/packs/core-experts/skills/Qdjango-expert/references/viewsets-views.md"
+        }
+      ]
+    },
+    {
+      "name": "Qfastapi-expert",
+      "kind": "skill",
+      "domain": "backend",
+      "summary": "Use when building high-performance async Python APIs with FastAPI and Pydantic V2. Invoke to create REST endpoints, define Pydantic models, implement authentication flows, set up async SQLAlchemy database operations, add JWT authentication, build WebSocket endpoints, or generate OpenAPI documentation. Trigger terms: FastAPI, Pydantic, async Python, Python API, REST API Python, SQLAlchemy async, JWT authentication, OpenAPI, Swagger Python.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "FastAPI",
+        "Pydantic",
+        "async Python",
+        "Python API",
+        "REST API Python",
+        "SQLAlchemy async",
+        "JWT authentication",
+        "OpenAPI",
+        "Swagger Python",
+        "fastapi-expert"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 111,
+        "full": 1611
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qfastapi-expert/SKILL.md",
+      "references": [
+        {
+          "alias": "async-sqlalchemy",
+          "path": "expert-library/packs/core-experts/skills/Qfastapi-expert/references/async-sqlalchemy.md"
+        },
+        {
+          "alias": "authentication",
+          "path": "expert-library/packs/core-experts/skills/Qfastapi-expert/references/authentication.md"
+        },
+        {
+          "alias": "endpoints-routing",
+          "path": "expert-library/packs/core-experts/skills/Qfastapi-expert/references/endpoints-routing.md"
+        },
+        {
+          "alias": "migration-from-django",
+          "path": "expert-library/packs/core-experts/skills/Qfastapi-expert/references/migration-from-django.md"
+        },
+        {
+          "alias": "pydantic-v2",
+          "path": "expert-library/packs/core-experts/skills/Qfastapi-expert/references/pydantic-v2.md"
+        },
+        {
+          "alias": "testing-async",
+          "path": "expert-library/packs/core-experts/skills/Qfastapi-expert/references/testing-async.md"
+        }
+      ]
+    },
+    {
+      "name": "Qgolang-pro",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Implements concurrent Go patterns using goroutines and channels, designs and builds microservices with gRPC or REST, optimizes Go application performance with pprof, and enforces idiomatic Go with generics, interfaces, and robust error handling. Use when building Go applications requiring concurrent programming, microservices architecture, or high-performance systems. Invoke for goroutines, channels, Go generics, gRPC integration, CLI tools, benchmarks, or table-driven testing.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Go",
+        "Golang",
+        "goroutines",
+        "channels",
+        "gRPC",
+        "microservices Go",
+        "Go generics",
+        "concurrent programming",
+        "Go interfaces",
+        "golang-pro"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 121,
+        "full": 2190
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qgolang-pro/SKILL.md",
+      "references": [
+        {
+          "alias": "concurrency",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/concurrency.md"
+        },
+        {
+          "alias": "generics",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/generics.md"
+        },
+        {
+          "alias": "interfaces",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/interfaces.md"
+        },
+        {
+          "alias": "project-structure",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/project-structure.md"
+        },
+        {
+          "alias": "testing",
+          "path": "expert-library/packs/core-experts/skills/Qgolang-pro/references/testing.md"
+        }
+      ]
+    },
+    {
+      "name": "Qgraphql-architect",
+      "kind": "skill",
+      "domain": "backend",
+      "summary": "Use when designing GraphQL schemas, implementing Apollo Federation, or building real-time subscriptions. Invoke for schema design, resolvers with DataLoader, query optimization, federation directives.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "GraphQL",
+        "Apollo Federation",
+        "GraphQL schema",
+        "API graph",
+        "GraphQL subscriptions",
+        "Apollo Server",
+        "schema design",
+        "GraphQL resolvers",
+        "DataLoader",
+        "graphql-architect"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 80,
+        "full": 1771
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qgraphql-architect/SKILL.md",
+      "references": [
+        {
+          "alias": "federation",
+          "path": "expert-library/packs/core-experts/skills/Qgraphql-architect/references/federation.md"
+        },
+        {
+          "alias": "migration-from-rest",
+          "path": "expert-library/packs/core-experts/skills/Qgraphql-architect/references/migration-from-rest.md"
+        },
+        {
+          "alias": "resolvers",
+          "path": "expert-library/packs/core-experts/skills/Qgraphql-architect/references/resolvers.md"
+        },
+        {
+          "alias": "schema-design",
+          "path": "expert-library/packs/core-experts/skills/Qgraphql-architect/references/schema-design.md"
+        },
+        {
+          "alias": "security",
+          "path": "expert-library/packs/core-experts/skills/Qgraphql-architect/references/security.md"
+        },
+        {
+          "alias": "subscriptions",
+          "path": "expert-library/packs/core-experts/skills/Qgraphql-architect/references/subscriptions.md"
+        }
+      ]
+    },
+    {
+      "name": "Qjava-architect",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Use when building, configuring, or debugging enterprise Java applications with Spring Boot 3.x, microservices, or reactive programming. Invoke to implement WebFlux endpoints, optimize JPA queries and database performance, configure Spring Security with OAuth2/JWT, or resolve authentication issues and async processing challenges in cloud-native Spring applications.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Spring Boot",
+        "Java",
+        "microservices",
+        "Spring Cloud",
+        "JPA",
+        "Hibernate",
+        "WebFlux",
+        "reactive",
+        "Java Enterprise",
+        "java-architect"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 92,
+        "full": 2333
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qjava-architect/SKILL.md",
+      "references": [
+        {
+          "alias": "jpa-optimization",
+          "path": "expert-library/packs/core-experts/skills/Qjava-architect/references/jpa-optimization.md"
+        },
+        {
+          "alias": "reactive-webflux",
+          "path": "expert-library/packs/core-experts/skills/Qjava-architect/references/reactive-webflux.md"
+        },
+        {
+          "alias": "spring-boot-setup",
+          "path": "expert-library/packs/core-experts/skills/Qjava-architect/references/spring-boot-setup.md"
+        },
+        {
+          "alias": "spring-security",
+          "path": "expert-library/packs/core-experts/skills/Qjava-architect/references/spring-security.md"
+        },
+        {
+          "alias": "testing-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qjava-architect/references/testing-patterns.md"
+        }
+      ]
+    },
+    {
+      "name": "Qjs-ts-expert",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Writes, debugs, and refactors JavaScript and TypeScript code using modern ES2023+ features, advanced type systems, and Node.js/Browser APIs. Use when building JS/TS applications, implementing complex generics, or ensuring end-to-end type safety.",
+      "invocationTriggers": [
+        "When specialized JavaScript or TypeScript best practices are needed.",
+        "JavaScript",
+        "TypeScript",
+        "ES2023",
+        "async/await",
+        "generics",
+        "type safety",
+        "type guards",
+        "discriminated unions",
+        "tsconfig",
+        "ESM",
+        "Node.js"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 80,
+        "full": 1719
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qjs-ts-expert/SKILL.md",
+      "references": []
+    },
+    {
+      "name": "Qkotlin-specialist",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Provides idiomatic Kotlin implementation patterns including coroutine concurrency, Flow stream handling, multiplatform architecture, Compose UI construction, Ktor server setup, and type-safe DSL design. Use when building Kotlin applications requiring coroutines, multiplatform development, or Android with Compose. Invoke for Flow API, KMP projects, Ktor servers, DSL design, sealed classes, suspend function, Android Kotlin, Kotlin Multiplatform.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Kotlin",
+        "coroutines",
+        "Kotlin Multiplatform",
+        "KMP",
+        "Jetpack Compose",
+        "Ktor",
+        "Flow",
+        "Android Kotlin",
+        "suspend function",
+        "kotlin-specialist"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 112,
+        "full": 2522
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qkotlin-specialist/SKILL.md",
+      "references": [
+        {
+          "alias": "android-compose",
+          "path": "expert-library/packs/core-experts/skills/Qkotlin-specialist/references/android-compose.md"
+        },
+        {
+          "alias": "coroutines-flow",
+          "path": "expert-library/packs/core-experts/skills/Qkotlin-specialist/references/coroutines-flow.md"
+        },
+        {
+          "alias": "dsl-idioms",
+          "path": "expert-library/packs/core-experts/skills/Qkotlin-specialist/references/dsl-idioms.md"
+        },
+        {
+          "alias": "ktor-server",
+          "path": "expert-library/packs/core-experts/skills/Qkotlin-specialist/references/ktor-server.md"
+        },
+        {
+          "alias": "multiplatform-kmp",
+          "path": "expert-library/packs/core-experts/skills/Qkotlin-specialist/references/multiplatform-kmp.md"
+        }
+      ]
+    },
+    {
+      "name": "Qkubernetes-specialist",
+      "kind": "skill",
+      "domain": "infra",
+      "summary": "Use when deploying or managing Kubernetes workloads. Invoke to create deployment manifests, configure pod security policies, set up service accounts, define network isolation rules, debug pod crashes, analyze resource limits, inspect container logs, or right-size workloads. Use for Helm charts, RBAC policies, NetworkPolicies, storage configuration, performance optimization, GitOps pipelines, and multi-cluster management.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Kubernetes",
+        "K8s",
+        "kubectl",
+        "Helm",
+        "container orchestration",
+        "pod deployment",
+        "RBAC",
+        "NetworkPolicy",
+        "Ingress",
+        "StatefulSet",
+        "Operator"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 106,
+        "full": 2785
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/SKILL.md",
+      "references": [
+        {
+          "alias": "configuration",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/configuration.md"
+        },
+        {
+          "alias": "cost-optimization",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/cost-optimization.md"
+        },
+        {
+          "alias": "custom-operators",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/custom-operators.md"
+        },
+        {
+          "alias": "gitops",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/gitops.md"
+        },
+        {
+          "alias": "helm-charts",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/helm-charts.md"
+        },
+        {
+          "alias": "multi-cluster",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/multi-cluster.md"
+        },
+        {
+          "alias": "networking",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/networking.md"
+        },
+        {
+          "alias": "service-mesh",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/service-mesh.md"
+        },
+        {
+          "alias": "storage",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/storage.md"
+        },
+        {
+          "alias": "troubleshooting",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/troubleshooting.md"
+        },
+        {
+          "alias": "workloads",
+          "path": "expert-library/packs/core-experts/skills/Qkubernetes-specialist/references/workloads.md"
+        }
+      ]
+    },
+    {
+      "name": "Qnestjs-expert",
+      "kind": "skill",
+      "domain": "backend",
+      "summary": "Creates and configures NestJS modules, controllers, services, DTOs, guards, and interceptors for enterprise-grade TypeScript backend applications. Use when building NestJS REST APIs or GraphQL services, implementing dependency injection, scaffolding modular architecture, adding JWT/Passport authentication, integrating TypeORM or Prisma, or working with .module.ts, .controller.ts, and .service.ts files. Invoke for guards, interceptors, pipes, validation, Swagger documentation, and unit/E2E testing in NestJS projects.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "NestJS",
+        "Nest",
+        "Node.js backend",
+        "TypeScript backend",
+        "dependency injection",
+        "controller",
+        "service",
+        "module",
+        "guard",
+        "interceptor",
+        "nestjs-expert"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 131,
+        "full": 2184
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qnestjs-expert/SKILL.md",
+      "references": [
+        {
+          "alias": "authentication",
+          "path": "expert-library/packs/core-experts/skills/Qnestjs-expert/references/authentication.md"
+        },
+        {
+          "alias": "controllers-routing",
+          "path": "expert-library/packs/core-experts/skills/Qnestjs-expert/references/controllers-routing.md"
+        },
+        {
+          "alias": "dtos-validation",
+          "path": "expert-library/packs/core-experts/skills/Qnestjs-expert/references/dtos-validation.md"
+        },
+        {
+          "alias": "migration-from-express",
+          "path": "expert-library/packs/core-experts/skills/Qnestjs-expert/references/migration-from-express.md"
+        },
+        {
+          "alias": "services-di",
+          "path": "expert-library/packs/core-experts/skills/Qnestjs-expert/references/services-di.md"
+        },
+        {
+          "alias": "testing-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qnestjs-expert/references/testing-patterns.md"
+        }
+      ]
+    },
+    {
+      "name": "Qnextjs-developer",
+      "kind": "skill",
+      "domain": "frontend",
+      "summary": "Use when building Next.js 14+ applications with App Router, server components, or server actions. Invoke to configure route handlers, implement middleware, set up API routes, add streaming SSR, write generateMetadata for SEO, scaffold loading.tsx/error.tsx boundaries, or deploy to Vercel. Triggers on: Next.js, Next.js 14, App Router, RSC, use server, Server Components, Server Actions, React Server Components, generateMetadata, loading.tsx, Next.js deployment, Vercel, Next.js performance.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Next.js",
+        "Next.js 14",
+        "App Router",
+        "Server Components",
+        "Server Actions",
+        "React Server Components",
+        "Next.js deployment",
+        "Vercel",
+        "Next.js performance",
+        "nextjs-developer"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 123,
+        "full": 1747
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qnextjs-developer/SKILL.md",
+      "references": [
+        {
+          "alias": "app-router",
+          "path": "expert-library/packs/core-experts/skills/Qnextjs-developer/references/app-router.md"
+        },
+        {
+          "alias": "data-fetching",
+          "path": "expert-library/packs/core-experts/skills/Qnextjs-developer/references/data-fetching.md"
+        },
+        {
+          "alias": "deployment",
+          "path": "expert-library/packs/core-experts/skills/Qnextjs-developer/references/deployment.md"
+        },
+        {
+          "alias": "server-actions",
+          "path": "expert-library/packs/core-experts/skills/Qnextjs-developer/references/server-actions.md"
+        },
+        {
+          "alias": "server-components",
+          "path": "expert-library/packs/core-experts/skills/Qnextjs-developer/references/server-components.md"
+        }
+      ]
+    },
+    {
+      "name": "Qphp-pro",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Use when building PHP applications with modern PHP 8.3+ features, Laravel, or Symfony frameworks. Invokes strict typing, PHPStan level 9, async patterns with Swoole, and PSR standards. Creates controllers, configures middleware, generates migrations, writes PHPUnit/Pest tests, defines typed DTOs and value objects, sets up dependency injection, and scaffolds REST/GraphQL APIs. Use when working with Eloquent, Doctrine, Composer, Psalm, ReactPHP, or any PHP API development.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "PHP",
+        "Laravel",
+        "Symfony",
+        "Composer",
+        "PHPStan",
+        "PSR",
+        "PHP API",
+        "Eloquent",
+        "Doctrine",
+        "php-pro"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 119,
+        "full": 2080
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qphp-pro/SKILL.md",
+      "references": [
+        {
+          "alias": "async-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qphp-pro/references/async-patterns.md"
+        },
+        {
+          "alias": "laravel-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qphp-pro/references/laravel-patterns.md"
+        },
+        {
+          "alias": "modern-php-features",
+          "path": "expert-library/packs/core-experts/skills/Qphp-pro/references/modern-php-features.md"
+        },
+        {
+          "alias": "symfony-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qphp-pro/references/symfony-patterns.md"
+        },
+        {
+          "alias": "testing-quality",
+          "path": "expert-library/packs/core-experts/skills/Qphp-pro/references/testing-quality.md"
+        }
+      ]
+    },
+    {
+      "name": "Qplaywright-expert",
+      "kind": "skill",
+      "domain": "quality",
+      "summary": "Use when writing E2E tests with Playwright, setting up test infrastructure, or debugging flaky browser tests. Invoke to write test scripts, create page objects, configure test fixtures, set up reporters, add CI integration, implement API mocking, or perform visual regression testing. Trigger terms: Playwright, E2E test, end-to-end, browser testing, automation, UI testing, visual testing, Page Object Model, test flakiness.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Playwright",
+        "E2E test",
+        "end-to-end",
+        "browser testing",
+        "automation",
+        "UI testing",
+        "visual testing",
+        "playwright expert",
+        "playwright-expert"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 107,
+        "full": 1895
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qplaywright-expert/SKILL.md",
+      "references": [
+        {
+          "alias": "api-mocking",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/api-mocking.md"
+        },
+        {
+          "alias": "configuration",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/configuration.md"
+        },
+        {
+          "alias": "debugging-flaky",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/debugging-flaky.md"
+        },
+        {
+          "alias": "page-object-model",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/page-object-model.md"
+        },
+        {
+          "alias": "selectors-locators",
+          "path": "expert-library/packs/core-experts/skills/Qplaywright-expert/references/selectors-locators.md"
+        }
+      ]
+    },
+    {
+      "name": "Qpython-pro",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Use when building Python 3.11+ applications requiring type safety, async programming, or robust error handling. Generates type-annotated Python code, configures mypy in strict mode, writes pytest test suites with fixtures and mocking, and validates code with black and ruff. Invoke for type hints, async/await patterns, dataclasses, dependency injection, logging configuration, and structured error handling.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Python development",
+        "type hints",
+        "async Python",
+        "pytest",
+        "mypy",
+        "dataclasses",
+        "Python best practices",
+        "Pythonic code",
+        "python-pro"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 102,
+        "full": 1857
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qpython-pro/SKILL.md",
+      "references": [
+        {
+          "alias": "anti-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qpython-pro/references/anti-patterns.md"
+        },
+        {
+          "alias": "async-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qpython-pro/references/async-patterns.md"
+        },
+        {
+          "alias": "code-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qpython-pro/references/code-patterns.md"
+        },
+        {
+          "alias": "packaging",
+          "path": "expert-library/packs/core-experts/skills/Qpython-pro/references/packaging.md"
+        },
+        {
+          "alias": "standard-library",
+          "path": "expert-library/packs/core-experts/skills/Qpython-pro/references/standard-library.md"
+        },
+        {
+          "alias": "testing",
+          "path": "expert-library/packs/core-experts/skills/Qpython-pro/references/testing.md"
+        },
+        {
+          "alias": "type-system",
+          "path": "expert-library/packs/core-experts/skills/Qpython-pro/references/type-system.md"
+        }
+      ]
+    },
+    {
+      "name": "Qreact-expert",
+      "kind": "skill",
+      "domain": "frontend",
+      "summary": "Use when building React 18+ applications in .jsx or .tsx files, Next.js App Router projects, or create-react-app setups. Creates components, implements custom hooks, debugs rendering issues, migrates class components to functional, and implements state management. Invoke for Server Components, Suspense boundaries, useActionState forms, performance optimization, or React 19 features.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "React",
+        "JSX",
+        "hooks",
+        "useState",
+        "useEffect",
+        "useContext",
+        "Server Components",
+        "React 19",
+        "Suspense",
+        "TanStack Query",
+        "Redux"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 97,
+        "full": 2785
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qreact-expert/SKILL.md",
+      "references": [
+        {
+          "alias": "hooks-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qreact-expert/references/hooks-patterns.md"
+        },
+        {
+          "alias": "migration-class-to-modern",
+          "path": "expert-library/packs/core-experts/skills/Qreact-expert/references/migration-class-to-modern.md"
+        },
+        {
+          "alias": "performance",
+          "path": "expert-library/packs/core-experts/skills/Qreact-expert/references/performance.md"
+        },
+        {
+          "alias": "react-19-features",
+          "path": "expert-library/packs/core-experts/skills/Qreact-expert/references/react-19-features.md"
+        },
+        {
+          "alias": "server-components",
+          "path": "expert-library/packs/core-experts/skills/Qreact-expert/references/server-components.md"
+        },
+        {
+          "alias": "state-management",
+          "path": "expert-library/packs/core-experts/skills/Qreact-expert/references/state-management.md"
+        },
+        {
+          "alias": "testing-react",
+          "path": "expert-library/packs/core-experts/skills/Qreact-expert/references/testing-react.md"
+        }
+      ]
+    },
+    {
+      "name": "Qrust-engineer",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Writes, reviews, and debugs idiomatic Rust code with memory safety and zero-cost abstractions. Implements ownership patterns, manages lifetimes, designs trait hierarchies, builds async applications with tokio, and structures error handling with Result/Option. Use when building Rust applications, solving ownership or borrowing issues, designing trait-based APIs, implementing async/await concurrency, creating FFI bindings, or optimizing for performance and memory safety. Invoke for Rust, Cargo, ownership, borrowing, lifetimes, async Rust, tokio, zero-cost abstractions, memory safety, systems programming.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Rust",
+        "Cargo",
+        "ownership",
+        "borrowing",
+        "lifetimes",
+        "async Rust",
+        "tokio",
+        "zero-cost abstractions",
+        "memory safety",
+        "systems programming",
+        "rust-engineer"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 153,
+        "full": 2543
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qrust-engineer/SKILL.md",
+      "references": [
+        {
+          "alias": "async",
+          "path": "expert-library/packs/core-experts/skills/Qrust-engineer/references/async.md"
+        },
+        {
+          "alias": "error-handling",
+          "path": "expert-library/packs/core-experts/skills/Qrust-engineer/references/error-handling.md"
+        },
+        {
+          "alias": "ownership",
+          "path": "expert-library/packs/core-experts/skills/Qrust-engineer/references/ownership.md"
+        },
+        {
+          "alias": "testing",
+          "path": "expert-library/packs/core-experts/skills/Qrust-engineer/references/testing.md"
+        },
+        {
+          "alias": "traits",
+          "path": "expert-library/packs/core-experts/skills/Qrust-engineer/references/traits.md"
+        }
+      ]
+    },
+    {
+      "name": "Qspring-boot-engineer",
+      "kind": "skill",
+      "domain": "backend",
+      "summary": "Generates Spring Boot 3.x configurations, creates REST controllers, implements Spring Security 6 authentication flows, sets up Spring Data JPA repositories, and configures reactive WebFlux endpoints. Use when building Spring Boot 3.x applications, microservices, or reactive Java applications; invoke for Spring Data JPA, Spring Security 6, WebFlux, Spring Cloud integration, Java REST API design, or Microservices Java architecture.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Spring Boot",
+        "Spring Framework",
+        "Spring Cloud",
+        "Spring Security",
+        "Spring Data JPA",
+        "Spring WebFlux",
+        "Microservices Java",
+        "Java REST API",
+        "Reactive Java",
+        "spring-boot-engineer"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 109,
+        "full": 1788
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qspring-boot-engineer/SKILL.md",
+      "references": [
+        {
+          "alias": "cloud",
+          "path": "expert-library/packs/core-experts/skills/Qspring-boot-engineer/references/cloud.md"
+        },
+        {
+          "alias": "data",
+          "path": "expert-library/packs/core-experts/skills/Qspring-boot-engineer/references/data.md"
+        },
+        {
+          "alias": "security",
+          "path": "expert-library/packs/core-experts/skills/Qspring-boot-engineer/references/security.md"
+        },
+        {
+          "alias": "testing",
+          "path": "expert-library/packs/core-experts/skills/Qspring-boot-engineer/references/testing.md"
+        },
+        {
+          "alias": "web",
+          "path": "expert-library/packs/core-experts/skills/Qspring-boot-engineer/references/web.md"
+        }
+      ]
+    },
+    {
+      "name": "Qsql-pro",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Optimizes SQL queries, designs database schemas, and troubleshoots performance issues. Use when a user asks why their query is slow, needs help writing complex joins or aggregations, mentions database performance issues, or wants to design or migrate a schema. Invoke for complex queries, window functions, CTEs, indexing strategies, query plan analysis, covering index creation, recursive queries, EXPLAIN/ANALYZE interpretation, before/after query benchmarking, or migrating queries between database dialects (PostgreSQL, MySQL, SQL Server, Oracle).",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "SQL optimization",
+        "query performance",
+        "database design",
+        "PostgreSQL",
+        "MySQL",
+        "SQL Server",
+        "window functions",
+        "CTEs",
+        "query tuning",
+        "EXPLAIN plan",
+        "database indexing"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 138,
+        "full": 1718
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qsql-pro/SKILL.md",
+      "references": [
+        {
+          "alias": "database-design",
+          "path": "expert-library/packs/core-experts/skills/Qsql-pro/references/database-design.md"
+        },
+        {
+          "alias": "dialect-differences",
+          "path": "expert-library/packs/core-experts/skills/Qsql-pro/references/dialect-differences.md"
+        },
+        {
+          "alias": "optimization",
+          "path": "expert-library/packs/core-experts/skills/Qsql-pro/references/optimization.md"
+        },
+        {
+          "alias": "query-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qsql-pro/references/query-patterns.md"
+        },
+        {
+          "alias": "window-functions",
+          "path": "expert-library/packs/core-experts/skills/Qsql-pro/references/window-functions.md"
+        }
+      ]
+    },
+    {
+      "name": "Qswift-expert",
+      "kind": "skill",
+      "domain": "language",
+      "summary": "Builds iOS/macOS/watchOS/tvOS applications, implements SwiftUI views and state management, designs protocol-oriented architectures, handles async/await concurrency, implements actors for thread safety, and debugs Swift-specific issues. Use when building iOS/macOS applications with Swift 5.9+, SwiftUI, or async/await concurrency. Invoke for protocol-oriented programming, SwiftUI state management, actors, server-side Swift, UIKit integration, Combine, or Vapor.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Swift",
+        "SwiftUI",
+        "iOS development",
+        "macOS development",
+        "async/await Swift",
+        "Combine",
+        "UIKit",
+        "Vapor",
+        "swift-expert"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 116,
+        "full": 2222
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qswift-expert/SKILL.md",
+      "references": [
+        {
+          "alias": "async-concurrency",
+          "path": "expert-library/packs/core-experts/skills/Qswift-expert/references/async-concurrency.md"
+        },
+        {
+          "alias": "memory-performance",
+          "path": "expert-library/packs/core-experts/skills/Qswift-expert/references/memory-performance.md"
+        },
+        {
+          "alias": "protocol-oriented",
+          "path": "expert-library/packs/core-experts/skills/Qswift-expert/references/protocol-oriented.md"
+        },
+        {
+          "alias": "swiftui-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qswift-expert/references/swiftui-patterns.md"
+        },
+        {
+          "alias": "testing-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qswift-expert/references/testing-patterns.md"
+        }
+      ]
+    },
+    {
+      "name": "Qterraform-engineer",
+      "kind": "skill",
+      "domain": "infra",
+      "summary": "Use when implementing infrastructure as code with Terraform across AWS, Azure, or GCP. Invoke for module development (create reusable modules, manage module versioning), state management (migrate backends, import existing resources, resolve state conflicts), provider configuration, multi-environment workflows, and infrastructure testing.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Terraform",
+        "infrastructure as code",
+        "IaC",
+        "terraform module",
+        "terraform state",
+        "AWS provider",
+        "Azure provider",
+        "GCP provider",
+        "terraform plan",
+        "terraform apply",
+        "terraform-engineer"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 85,
+        "full": 1769
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qterraform-engineer/SKILL.md",
+      "references": [
+        {
+          "alias": "best-practices",
+          "path": "expert-library/packs/core-experts/skills/Qterraform-engineer/references/best-practices.md"
+        },
+        {
+          "alias": "module-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qterraform-engineer/references/module-patterns.md"
+        },
+        {
+          "alias": "providers",
+          "path": "expert-library/packs/core-experts/skills/Qterraform-engineer/references/providers.md"
+        },
+        {
+          "alias": "state-management",
+          "path": "expert-library/packs/core-experts/skills/Qterraform-engineer/references/state-management.md"
+        },
+        {
+          "alias": "testing",
+          "path": "expert-library/packs/core-experts/skills/Qterraform-engineer/references/testing.md"
+        }
+      ]
+    },
+    {
+      "name": "Qtest-master",
+      "kind": "skill",
+      "domain": "quality",
+      "summary": "Generates test files, creates mocking strategies, analyzes code coverage, designs test architectures, and produces test plans and defect reports across functional, performance, and security testing disciplines. Use when writing unit tests, integration tests, or E2E tests; creating test strategies or automation frameworks; analyzing coverage gaps; performance testing with k6 or Artillery; security testing with OWASP methods; debugging flaky tests; or working on QA, regression, test automation, quality gates, shift-left testing, or test maintenance.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "test",
+        "testing",
+        "QA",
+        "unit test",
+        "integration test",
+        "E2E",
+        "coverage",
+        "performance test",
+        "security test",
+        "regression",
+        "test strategy",
+        "test automation",
+        "test framework",
+        "quality metrics",
+        "defect",
+        "exploratory",
+        "usability",
+        "accessibility",
+        "localization",
+        "manual testing",
+        "shift-left",
+        "quality gate",
+        "flaky test",
+        "test maintenance",
+        "test master",
+        "test-master"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 139,
+        "full": 2005
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qtest-master/SKILL.md",
+      "references": [
+        {
+          "alias": "automation-frameworks",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/automation-frameworks.md"
+        },
+        {
+          "alias": "e2e-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/e2e-testing.md"
+        },
+        {
+          "alias": "integration-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/integration-testing.md"
+        },
+        {
+          "alias": "performance-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/performance-testing.md"
+        },
+        {
+          "alias": "qa-methodology",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/qa-methodology.md"
+        },
+        {
+          "alias": "security-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/security-testing.md"
+        },
+        {
+          "alias": "tdd-iron-laws",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/tdd-iron-laws.md"
+        },
+        {
+          "alias": "test-reports",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/test-reports.md"
+        },
+        {
+          "alias": "testing-anti-patterns",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/testing-anti-patterns.md"
+        },
+        {
+          "alias": "unit-testing",
+          "path": "expert-library/packs/core-experts/skills/Qtest-master/references/unit-testing.md"
+        }
+      ]
+    },
+    {
+      "name": "Qvite",
+      "kind": "skill",
+      "domain": "frontend",
+      "summary": "Vite build tool configuration, plugin API, SSR, and Vite 8 Rolldown migration. Use when working with Vite projects, vite.config.ts, Vite plugins, or building libraries/SSR apps with Vite.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "vite"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 80,
+        "full": 1301
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qvite/SKILL.md",
+      "references": [
+        {
+          "alias": "build-and-ssr",
+          "path": "expert-library/packs/core-experts/skills/Qvite/references/build-and-ssr.md"
+        },
+        {
+          "alias": "core-config",
+          "path": "expert-library/packs/core-experts/skills/Qvite/references/core-config.md"
+        },
+        {
+          "alias": "core-features",
+          "path": "expert-library/packs/core-experts/skills/Qvite/references/core-features.md"
+        },
+        {
+          "alias": "core-plugin-api",
+          "path": "expert-library/packs/core-experts/skills/Qvite/references/core-plugin-api.md"
+        },
+        {
+          "alias": "environment-api",
+          "path": "expert-library/packs/core-experts/skills/Qvite/references/environment-api.md"
+        },
+        {
+          "alias": "rolldown-migration",
+          "path": "expert-library/packs/core-experts/skills/Qvite/references/rolldown-migration.md"
+        }
+      ]
+    },
+    {
+      "name": "Qvue-expert",
+      "kind": "skill",
+      "domain": "frontend",
+      "summary": "Builds Vue 3 components with Composition API patterns, configures Nuxt 3 SSR/SSG projects, sets up Pinia stores, scaffolds Quasar/Capacitor mobile apps, implements PWA features, and optimises Vite builds. Use when creating Vue 3 applications with Composition API, writing reusable composables, managing state with Pinia, building hybrid mobile apps with Quasar or Capacitor, configuring service workers, or tuning Vite configuration and TypeScript integration.",
+      "invocationTriggers": [
+        "When specialized language or framework best practices are needed.",
+        "Vue 3",
+        "Composition API",
+        "Nuxt",
+        "Pinia",
+        "Vue composables",
+        "reactive",
+        "ref",
+        "Vue Router",
+        "Vite Vue",
+        "Quasar",
+        "Capacitor"
+      ],
+      "relatedCoreSkill": "Qrun-task",
+      "recommendedModel": "haiku",
+      "tokenEstimate": {
+        "summary": 115,
+        "full": 2150
+      },
+      "review": {
+        "status": "unreviewed",
+        "lastReviewed": null
+      },
+      "clientSupport": {
+        "claude": "mcp-tool",
+        "codex": "mcp-tool",
+        "gemini": "mcp-tool"
+      },
+      "pack": "core-experts",
+      "sourcePath": "expert-library/packs/core-experts/skills/Qvue-expert/SKILL.md",
+      "references": [
+        {
+          "alias": "build-tooling",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert/references/build-tooling.md"
+        },
+        {
+          "alias": "components",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert/references/components.md"
+        },
+        {
+          "alias": "composition-api",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert/references/composition-api.md"
+        },
+        {
+          "alias": "mobile-hybrid",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert/references/mobile-hybrid.md"
+        },
+        {
+          "alias": "nuxt",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert/references/nuxt.md"
+        },
+        {
+          "alias": "state-management",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert/references/state-management.md"
+        },
+        {
+          "alias": "typescript",
+          "path": "expert-library/packs/core-experts/skills/Qvue-expert/references/typescript.md"
+        }
+      ]
+    }
+  ],
+  "totalExperts": 25
+}

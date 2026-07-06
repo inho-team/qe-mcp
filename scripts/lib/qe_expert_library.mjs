@@ -5,9 +5,46 @@ import { fileURLToPath } from 'url';
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(MODULE_DIR, '..', '..');
 const EXPERT_ROOT = join(REPO_ROOT, 'expert-library');
-const INDEX_PATH = join(EXPERT_ROOT, 'indexes', 'expert-index.json');
+const CORE_INDEX_PATH = join(EXPERT_ROOT, 'indexes', 'core-index.json');
 const MAX_READ_BYTES = 24000;
 const DEFAULT_READ_BYTES = 12000;
+
+// The core pack always ships in-tree. The extra pack is optional: it is loaded
+// only when its root is discoverable via QE_EXTRA_EXPERTS_ROOT or an installed
+// @inho-team/qe-experts-extra package. Each root carries its own repoRoot (the
+// base that sourcePaths are relative to) and expertRoot (the allowlist boundary).
+const CORE_ROOT = {
+  pack: 'core-experts',
+  repoRoot: REPO_ROOT,
+  expertRoot: EXPERT_ROOT,
+  indexPath: CORE_INDEX_PATH,
+};
+
+function resolveExtraRoot() {
+  const candidates = [];
+  if (process.env.QE_EXTRA_EXPERTS_ROOT) candidates.push(process.env.QE_EXTRA_EXPERTS_ROOT);
+  candidates.push(join(REPO_ROOT, 'node_modules', '@inho-team', 'qe-experts-extra'));
+  for (const candidate of candidates) {
+    if (!candidate || !existsSync(candidate)) continue;
+    const base = resolve(candidate);
+    const expertRoot = existsSync(join(base, 'expert-library'))
+      ? join(base, 'expert-library')
+      : base;
+    const indexPath = [
+      join(expertRoot, 'indexes', 'extra-index.json'),
+      join(base, 'indexes', 'extra-index.json'),
+    ].find((p) => existsSync(p));
+    if (indexPath) return { pack: 'extra-experts', repoRoot: base, expertRoot, indexPath };
+  }
+  return null;
+}
+
+function getExpertRoots() {
+  const roots = [CORE_ROOT];
+  const extra = resolveExtraRoot();
+  if (extra) roots.push(extra);
+  return roots;
+}
 
 function normalizeName(value) {
   return String(value || '').trim().toLowerCase();
@@ -29,18 +66,30 @@ function pathUnder(root, candidate) {
   return resolvedCandidate === resolvedRoot || resolvedCandidate.startsWith(resolvedRoot + sep);
 }
 
-function resolveExpertPath(repoPath) {
+// Resolve an expert-relative path against a specific registered root and refuse
+// anything that escapes that root's expert boundary. The allowlist is the set of
+// registered roots (core + optional extra) — an arbitrary path under neither is
+// still hard-refused, preserving the original security guarantee across roots.
+function resolveExpertPath(repoPath, { repoRoot = REPO_ROOT, expertRoot = EXPERT_ROOT } = {}) {
   if (!repoPath || typeof repoPath !== 'string') {
     throw new Error('Invalid expert path');
   }
   if (repoPath.includes('..')) {
     throw new Error('Refusing expert path traversal');
   }
-  const absolute = resolve(REPO_ROOT, repoPath);
-  if (!pathUnder(EXPERT_ROOT, absolute)) {
+  const absolute = resolve(repoRoot, repoPath);
+  if (!pathUnder(expertRoot, absolute)) {
     throw new Error('Refusing out-of-tree expert path');
   }
   return absolute;
+}
+
+// Root descriptor an expert entry was loaded from, used to resolve its files.
+function rootForExpert(expert) {
+  return {
+    repoRoot: expert && expert._repoRoot ? expert._repoRoot : REPO_ROOT,
+    expertRoot: expert && expert._expertRoot ? expert._expertRoot : EXPERT_ROOT,
+  };
 }
 
 function readTextBounded(path, maxBytes = DEFAULT_READ_BYTES) {
@@ -55,17 +104,39 @@ function readTextBounded(path, maxBytes = DEFAULT_READ_BYTES) {
   };
 }
 
-export function loadExpertIndex({ indexPath = INDEX_PATH } = {}) {
-  if (!existsSync(indexPath)) {
-    return { experts: [], error: null, indexPath };
+// Load and merge every registered pack index into one expert list. Core is loaded
+// first, so on a name collision the core entry wins and the duplicate is dropped
+// with a recorded warning. Each returned expert is tagged with its root descriptor
+// (_repoRoot/_expertRoot) so its files resolve against the pack it came from.
+// A single explicit `indexPath` (tests / legacy callers) bypasses multi-root merge.
+export function loadExpertIndex({ indexPath = null } = {}) {
+  const roots = indexPath
+    ? [{ pack: 'explicit', repoRoot: REPO_ROOT, expertRoot: EXPERT_ROOT, indexPath }]
+    : getExpertRoots();
+  const experts = [];
+  const byName = new Map();
+  const warnings = [];
+  let error = null;
+  for (const root of roots) {
+    if (!existsSync(root.indexPath)) continue;
+    try {
+      const data = readJson(root.indexPath);
+      const entries = Array.isArray(data.experts) ? data.experts : [];
+      for (const entry of entries) {
+        const key = normalizeName(entry.name);
+        if (byName.has(key)) {
+          warnings.push(`Duplicate expert "${entry.name}" in ${root.pack} ignored (core wins).`);
+          continue;
+        }
+        const tagged = { ...entry, _repoRoot: root.repoRoot, _expertRoot: root.expertRoot };
+        byName.set(key, tagged);
+        experts.push(tagged);
+      }
+    } catch (err) {
+      error = error ? `${error}; ${err.message}` : err.message;
+    }
   }
-  try {
-    const data = readJson(indexPath);
-    const experts = Array.isArray(data.experts) ? data.experts : [];
-    return { experts, error: null, indexPath };
-  } catch (error) {
-    return { experts: [], error: error.message, indexPath };
-  }
+  return { experts, error, warnings, roots };
 }
 
 export function listExpertPacks() {
@@ -170,11 +241,12 @@ export function findExpert(name) {
 
 export function readExpert({ name, includeReferences = false, maxBytes = DEFAULT_READ_BYTES } = {}) {
   const expert = findExpert(name);
-  const sourcePath = resolveExpertPath(expert.sourcePath);
+  const root = rootForExpert(expert);
+  const sourcePath = resolveExpertPath(expert.sourcePath, root);
   const content = readTextBounded(sourcePath, maxBytes);
   const references = includeReferences
     ? (expert.references || []).slice(0, 10).map((ref) => {
-        const refPath = resolveExpertPath(ref.path);
+        const refPath = resolveExpertPath(ref.path, root);
         return { alias: ref.alias || basename(ref.path), path: ref.path, ...readTextBounded(refPath, 4000) };
       })
     : (expert.references || []).map((ref) => ({ alias: ref.alias || basename(ref.path), path: ref.path }));
@@ -183,7 +255,7 @@ export function readExpert({ name, includeReferences = false, maxBytes = DEFAULT
     domain: expert.domain,
     summary: expert.summary,
     reviewStatus: expert.review?.status || 'unreviewed',
-    sourcePath: relative(REPO_ROOT, sourcePath).replace(/\\/g, '/'),
+    sourcePath: relative(root.repoRoot, sourcePath).replace(/\\/g, '/'),
     content: content.text,
     truncated: content.truncated,
     bytes: content.bytes,
@@ -210,7 +282,7 @@ export function readMethodology({ expert: expertName, reference, maxBytes = DEFA
     };
   }
   const selected = matches[0];
-  const refPath = resolveExpertPath(selected.path);
+  const refPath = resolveExpertPath(selected.path, rootForExpert(expert));
   const content = readTextBounded(refPath, maxBytes);
   return {
     expert: expert.name,
@@ -278,11 +350,13 @@ export function listExpertResources() {
 export function readExpertResource(uri) {
   if (uri === 'qe://experts/catalog') {
     const { experts, error } = loadExpertIndex();
+    // Strip internal root descriptors (absolute paths) before publishing.
+    const publicExperts = experts.map(({ _repoRoot, _expertRoot, ...rest }) => rest);
     return {
       contents: [{
         uri,
         mimeType: 'application/json',
-        text: JSON.stringify({ experts, error }, null, 2),
+        text: JSON.stringify({ experts: publicExperts, error }, null, 2),
       }],
     };
   }
