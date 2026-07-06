@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, realpathSync } from 'fs';
+import { homedir } from 'os';
 import { basename, dirname, join, relative, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -8,11 +9,18 @@ const EXPERT_ROOT = join(REPO_ROOT, 'expert-library');
 const CORE_INDEX_PATH = join(EXPERT_ROOT, 'indexes', 'core-index.json');
 const MAX_READ_BYTES = 24000;
 const DEFAULT_READ_BYTES = 12000;
+// Pack index schemaVersion this loader understands. A non-core pack whose index
+// declares a different version is refused at merge time (version-skew guard).
+const EXPECTED_SCHEMA_VERSION = 1;
+// Standard install location the `packs install extra-experts` CLI deploys to and
+// the loader auto-detects without any environment variable.
+const STANDARD_EXTRA_ROOT = join(homedir(), '.qe', 'mcp', 'packs', 'extra-experts');
 
 // The core pack always ships in-tree. The extra pack is optional: it is loaded
-// only when its root is discoverable via QE_EXTRA_EXPERTS_ROOT or an installed
-// @inho-team/qe-experts-extra package. Each root carries its own repoRoot (the
-// base that sourcePaths are relative to) and expertRoot (the allowlist boundary).
+// only when its root is discoverable via QE_EXTRA_EXPERTS_ROOT, the standard
+// install path, or an installed @inho-team/qe-experts-extra package. Each root
+// carries its own repoRoot (the base sourcePaths are relative to) and expertRoot
+// (the allowlist boundary).
 const CORE_ROOT = {
   pack: 'core-experts',
   repoRoot: REPO_ROOT,
@@ -20,9 +28,14 @@ const CORE_ROOT = {
   indexPath: CORE_INDEX_PATH,
 };
 
+// Locate an installed extra pack. Supports both the flat package layout
+// (<base>/extra-index.json + <base>/experts/) and an in-tree expert-library
+// layout, returning the first candidate that resolves an index.
 function resolveExtraRoot() {
+  if (process.env.QE_DISABLE_EXTRA_PACK === '1') return null;
   const candidates = [];
   if (process.env.QE_EXTRA_EXPERTS_ROOT) candidates.push(process.env.QE_EXTRA_EXPERTS_ROOT);
+  candidates.push(STANDARD_EXTRA_ROOT);
   candidates.push(join(REPO_ROOT, 'node_modules', '@inho-team', 'qe-experts-extra'));
   for (const candidate of candidates) {
     if (!candidate || !existsSync(candidate)) continue;
@@ -31,6 +44,7 @@ function resolveExtraRoot() {
       ? join(base, 'expert-library')
       : base;
     const indexPath = [
+      join(base, 'extra-index.json'),
       join(expertRoot, 'indexes', 'extra-index.json'),
       join(base, 'indexes', 'extra-index.json'),
     ].find((p) => existsSync(p));
@@ -44,6 +58,40 @@ function getExpertRoots() {
   const extra = resolveExtraRoot();
   if (extra) roots.push(extra);
   return roots;
+}
+
+// The standard install path the extra pack is deployed to and auto-detected from.
+export function getStandardExtraRoot() {
+  return STANDARD_EXTRA_ROOT;
+}
+
+// Report installed packs, their roots, expert counts, and schemaVersion — the
+// data surface behind the `qe-mcp packs list|status` CLI.
+export function describePacks() {
+  const roots = getExpertRoots();
+  const extra = roots.find((r) => r.pack === 'extra-experts');
+  const readIndex = (root) => {
+    try { return readJson(root.indexPath); } catch { return null; }
+  };
+  const coreData = readIndex(CORE_ROOT);
+  const describe = (root, data) => ({
+    installed: true,
+    root: root.repoRoot,
+    indexPath: root.indexPath,
+    count: data && Array.isArray(data.experts) ? data.experts.length : 0,
+    schemaVersion: data ? data.schemaVersion : null,
+    schemaOk: !data || data.schemaVersion === EXPECTED_SCHEMA_VERSION,
+  });
+  return {
+    expectedSchemaVersion: EXPECTED_SCHEMA_VERSION,
+    standardExtraRoot: STANDARD_EXTRA_ROOT,
+    packs: {
+      'core-experts': describe(CORE_ROOT, coreData),
+      'extra-experts': extra
+        ? describe(extra, readIndex(extra))
+        : { installed: false, root: STANDARD_EXTRA_ROOT, indexPath: null, count: 0, schemaVersion: null, schemaOk: true },
+    },
+  };
 }
 
 function normalizeName(value) {
@@ -80,6 +128,17 @@ function resolveExpertPath(repoPath, { repoRoot = REPO_ROOT, expertRoot = EXPERT
   const absolute = resolve(repoRoot, repoPath);
   if (!pathUnder(expertRoot, absolute)) {
     throw new Error('Refusing out-of-tree expert path');
+  }
+  // Symlink guard: resolve() is lexical and readFileSync follows symlinks, so a
+  // pack could ship experts/leak -> /etc/passwd and pass the lexical check. Re-check
+  // the real (symlink-resolved) path against the real boundary at point of use.
+  // Normalizing both sides also avoids false positives on platforms where the
+  // root itself contains a symlink (e.g. macOS /var -> /private/var).
+  if (existsSync(absolute)) {
+    const realBoundary = existsSync(expertRoot) ? realpathSync(expertRoot) : resolve(expertRoot);
+    if (!pathUnder(realBoundary, realpathSync(absolute))) {
+      throw new Error('Refusing symlinked expert path');
+    }
   }
   return absolute;
 }
@@ -121,6 +180,15 @@ export function loadExpertIndex({ indexPath = null } = {}) {
     if (!existsSync(root.indexPath)) continue;
     try {
       const data = readJson(root.indexPath);
+      // Version-skew guard: refuse to merge a non-core pack whose index declares
+      // a schemaVersion this loader does not understand.
+      if (root.pack !== 'core-experts' && data.schemaVersion !== EXPECTED_SCHEMA_VERSION) {
+        warnings.push(
+          `Extra pack "${root.pack}" schemaVersion ${data.schemaVersion} != expected `
+          + `${EXPECTED_SCHEMA_VERSION}; merge refused. Update the pack or qe-mcp.`,
+        );
+        continue;
+      }
       const entries = Array.isArray(data.experts) ? data.experts : [];
       for (const entry of entries) {
         const key = normalizeName(entry.name);

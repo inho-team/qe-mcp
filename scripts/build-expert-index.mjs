@@ -28,9 +28,10 @@ const INDEXES_DIR = join(EXPERT_ROOT, 'indexes');
 const LEGACY_INDEX = join(INDEXES_DIR, 'expert-index.json');
 const SCHEMA_VERSION = 1;
 
+// The extra pack lives in the separate @inho-team/qe-experts-extra package and
+// builds its own index there. qe-mcp only generates the in-tree core index.
 const PACK_TO_INDEX = {
   'core-experts': join(INDEXES_DIR, 'core-index.json'),
-  'extra-experts': join(INDEXES_DIR, 'extra-index.json'),
 };
 
 function readJsonOrNull(path) {

@@ -779,11 +779,44 @@ function assertAgentRunResultShape(result, label) {
   }
 }
 
+// Writes a flat extra-pack fixture (extra-index.json + experts/) mirroring the
+// @inho-team/qe-experts-extra layout, at the given schemaVersion.
+function writeExtraFixture(schemaVersion) {
+  const root = mkdtempSync(resolve(tmpdir(), 'qe-extra-fixture-'));
+  const skillDir = join(root, 'experts', 'QFixtureExpert');
+  mkdirSync(join(skillDir, 'references'), { recursive: true });
+  writeFileSync(join(skillDir, 'SKILL.md'), '# QFixtureExpert\n\nFixture expert body for the selftest.\n');
+  writeFileSync(join(skillDir, 'references', 'notes.md'), 'Fixture reference content.\n');
+  const index = {
+    schemaVersion,
+    pack: 'extra-experts',
+    experts: [{
+      name: 'QFixtureExpert',
+      kind: 'skill',
+      pack: 'extra-experts',
+      domain: 'testing',
+      summary: 'Fixture expert used by the selftest.',
+      sourcePath: 'experts/QFixtureExpert/SKILL.md',
+      references: [{ alias: 'notes', path: 'experts/QFixtureExpert/references/notes.md' }],
+      review: { status: 'unreviewed', lastReviewed: null },
+    }],
+    totalExperts: 1,
+  };
+  writeFileSync(join(root, 'extra-index.json'), `${JSON.stringify(index, null, 2)}\n`);
+  return root;
+}
+
 // Verifies the multi-pack expert loader: core-only default, optional extra pack
-// merge under a registered root, and that unregistered packs stay unreadable.
+// merge under a registered root, the version-skew guard, and that unregistered
+// packs stay unreadable.
 async function runExpertPackTests() {
-  const priorEnv = process.env.QE_EXTRA_EXPERTS_ROOT;
+  const priorRootEnv = process.env.QE_EXTRA_EXPERTS_ROOT;
+  const priorDisableEnv = process.env.QE_DISABLE_EXTRA_PACK;
+  const fixtures = [];
+  // Force core-only for the default assertion so the machine's standard install
+  // path (if any) cannot make the count non-deterministic.
   delete process.env.QE_EXTRA_EXPERTS_ROOT;
+  process.env.QE_DISABLE_EXTRA_PACK = '1';
   try {
     // (a) default load = core pack only (25).
     const core = loadExpertIndex();
@@ -794,7 +827,7 @@ async function runExpertPackTests() {
     if (corePacks.length !== 1 || corePacks[0].pack !== 'core-experts' || corePacks[0].count !== 25) {
       throw new Error('default listExpertPacks should be core-experts:25');
     }
-    // (d) core expert + references read smoke across a sample of moved-adjacent packs.
+    // (d) core expert + references read smoke across a sample of packs.
     for (const name of ['Qpython-pro', 'Qreact-expert', 'Qterraform-engineer', 'Qtest-master']) {
       const read = readExpert({ name, includeReferences: true });
       if (!read.content || read.content.length === 0) throw new Error(`core read ${name} returned empty content`);
@@ -802,44 +835,91 @@ async function runExpertPackTests() {
         if (!('text' in ref)) throw new Error(`core ${name} reference ${ref.path} was not read`);
       }
     }
-    // Security boundary: an extra-pack expert is unreadable while extra root is unregistered.
+    // Security boundary: the extra pack is not in-tree; its experts stay unreadable.
     try {
-      readExpert({ name: 'Qthe-fool' });
+      readExpert({ name: 'QFixtureExpert' });
       throw new Error('extra expert was readable without a registered extra root');
     } catch (error) {
       if (!/Unknown expert/.test(error.message)) throw error;
     }
 
-    // (b)/(c) register the extra root and confirm the merge opens exactly that pack.
-    process.env.QE_EXTRA_EXPERTS_ROOT = process.cwd();
+    // (b) register a valid extra fixture and confirm the merge opens exactly that pack.
+    delete process.env.QE_DISABLE_EXTRA_PACK;
+    const okRoot = writeExtraFixture(1);
+    fixtures.push(okRoot);
+    process.env.QE_EXTRA_EXPERTS_ROOT = okRoot;
     const merged = loadExpertIndex();
-    if (merged.experts.length !== 92) {
-      throw new Error(`expected 92 merged experts with extra root, got ${merged.experts.length}`);
+    if (merged.experts.length !== 26) {
+      throw new Error(`expected 26 merged experts (25 core + 1 fixture), got ${merged.experts.length}`);
     }
     if (merged.warnings.length !== 0) {
       throw new Error(`unexpected merge warnings: ${merged.warnings.join('; ')}`);
     }
     const mergedPacks = listExpertPacks().packs;
-    if (mergedPacks.length !== 2 || !mergedPacks.some((p) => p.pack === 'extra-experts' && p.count === 67)) {
-      throw new Error('injected listExpertPacks should expose extra-experts:67');
+    if (mergedPacks.length !== 2 || !mergedPacks.some((p) => p.pack === 'extra-experts' && p.count === 1)) {
+      throw new Error('injected listExpertPacks should expose the extra pack');
     }
-    const extraRead = readExpert({ name: 'Qthe-fool', includeReferences: true });
+    const extraRead = readExpert({ name: 'QFixtureExpert', includeReferences: true });
     if (!extraRead.content || extraRead.content.length === 0) {
       throw new Error('extra expert read failed under a registered extra root');
     }
     if (extraRead.references.some((ref) => !('text' in ref))) {
       throw new Error('extra expert references were not read under registered root');
     }
-    // Traversal-style names stay refused even with the extra root registered.
+
+    // (c) version-skew guard: a mismatched schemaVersion refuses the merge with a warning.
+    const badRoot = writeExtraFixture(999);
+    fixtures.push(badRoot);
+    process.env.QE_EXTRA_EXPERTS_ROOT = badRoot;
+    const skewed = loadExpertIndex();
+    if (skewed.experts.length !== 25) {
+      throw new Error(`schemaVersion mismatch should refuse merge (expected 25, got ${skewed.experts.length})`);
+    }
+    if (!skewed.warnings.some((w) => /schemaVersion/i.test(w))) {
+      throw new Error('schemaVersion mismatch did not emit a warning');
+    }
+
+    // Symlink-escape guard: an expert whose SKILL.md symlinks outside the pack
+    // root must be refused at read time even though the lexical path looks in-bounds.
+    const evilRoot = writeExtraFixture(1);
+    fixtures.push(evilRoot);
+    const outsideDir = mkdtempSync(resolve(tmpdir(), 'qe-outside-secret-'));
+    fixtures.push(outsideDir);
+    const secretFile = join(outsideDir, 'secret.md');
+    writeFileSync(secretFile, 'TOP SECRET — must not be readable via an expert\n');
+    const evilSkillDir = join(evilRoot, 'experts', 'QEvil');
+    mkdirSync(evilSkillDir, { recursive: true });
+    symlinkSync(secretFile, join(evilSkillDir, 'SKILL.md'));
+    const evilIndex = JSON.parse(readFileSync(join(evilRoot, 'extra-index.json'), 'utf8'));
+    evilIndex.experts.push({
+      name: 'QEvil', kind: 'skill', pack: 'extra-experts', domain: 'testing',
+      summary: 'symlink escape probe', sourcePath: 'experts/QEvil/SKILL.md',
+      references: [], review: { status: 'unreviewed', lastReviewed: null },
+    });
+    evilIndex.totalExperts = evilIndex.experts.length;
+    writeFileSync(join(evilRoot, 'extra-index.json'), `${JSON.stringify(evilIndex, null, 2)}\n`);
+    process.env.QE_EXTRA_EXPERTS_ROOT = evilRoot;
     try {
-      readExpert({ name: '../Qthe-fool' });
+      readExpert({ name: 'QEvil' });
+      throw new Error('symlinked expert path was not refused');
+    } catch (error) {
+      if (!/symlinked expert path/i.test(error.message)) throw error;
+    }
+
+    // Traversal-style names stay refused even with an extra root registered.
+    process.env.QE_EXTRA_EXPERTS_ROOT = okRoot;
+    try {
+      readExpert({ name: '../QFixtureExpert' });
       throw new Error('traversal-style expert name was not refused');
     } catch (error) {
       if (!/Unknown expert/.test(error.message)) throw error;
     }
   } finally {
-    if (priorEnv === undefined) delete process.env.QE_EXTRA_EXPERTS_ROOT;
-    else process.env.QE_EXTRA_EXPERTS_ROOT = priorEnv;
+    if (priorRootEnv === undefined) delete process.env.QE_EXTRA_EXPERTS_ROOT;
+    else process.env.QE_EXTRA_EXPERTS_ROOT = priorRootEnv;
+    if (priorDisableEnv === undefined) delete process.env.QE_DISABLE_EXTRA_PACK;
+    else process.env.QE_DISABLE_EXTRA_PACK = priorDisableEnv;
+    for (const dir of fixtures) rmSync(dir, { recursive: true, force: true });
   }
 }
 

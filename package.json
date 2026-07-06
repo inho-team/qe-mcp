@@ -17,8 +17,11 @@
     "access": "public"
   },
   "files": [
-    "expert-library/",
-    "scripts/",
+    "expert-library/packs/core-experts/skills/",
+    "expert-library/indexes/",
+    "scripts/lib/",
+    "scripts/qe_mcp.mjs",
+    "scripts/qe_mcp_server.mjs",
     "LICENSE",
     "README.md",
     "package.json"
