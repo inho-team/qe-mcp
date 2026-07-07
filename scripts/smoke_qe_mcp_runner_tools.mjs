@@ -100,8 +100,31 @@ async function main() {
       'qe_delegate_agent',
       'qe_agent_run_status',
       'qe_agent_run_read',
+      'qe_run_openai_compat_agent',
     ]) {
       if (!toolNames.includes(name)) throw new Error(`missing tool: ${name}`);
+    }
+
+    // openai-compat is a network-only, env-gated runner: verify its tools/list
+    // schema shape and that it fails gracefully (not_installed) with no endpoint
+    // configured — no live network call is made.
+    const openaiTool = tools.result?.tools?.find((tool) => tool.name === 'qe_run_openai_compat_agent');
+    const ocProps = openaiTool?.inputSchema?.properties || {};
+    if (ocProps.sandbox_mode || ocProps.permission_mode) {
+      throw new Error('qe_run_openai_compat_agent schema must not expose sandbox_mode/permission_mode');
+    }
+    if (ocProps.timeout_ms?.maximum !== 120000 || ocProps.max_output_bytes?.maximum !== 24000) {
+      throw new Error('qe_run_openai_compat_agent schema bounds must be timeout_ms<=120000, max_output_bytes<=24000');
+    }
+    const openaiCompat = summarizeRunner(
+      'qe_run_openai_compat_agent',
+      await client.request('tools/call', { name: 'qe_run_openai_compat_agent', arguments: { prompt: 'ping' } })
+    );
+    if (openaiCompat.status !== 'ok' && !isAcceptableSmoke(openaiCompat)) {
+      throw new Error(`qe_run_openai_compat_agent failed ungracefully: ${JSON.stringify(openaiCompat)}`);
+    }
+    if (!process.env.QE_OPENAI_COMPAT_BASE_URL && openaiCompat.error?.category !== 'not_installed') {
+      throw new Error(`unconfigured openai-compat must return not_installed, got ${openaiCompat.error?.category}`);
     }
 
     const help = await client.request('tools/call', { name: 'qe_cross_agent_help' });
@@ -132,7 +155,7 @@ async function main() {
       help_passive: true,
       public_engine_tools: true,
       status_read: lifecycleRunId ? lifecycleRunId.result?.structuredContent?.status || 'missing' : 'skipped',
-      runners: [codex, claude],
+      runners: [codex, claude, openaiCompat],
     };
     console.log(JSON.stringify(summary, null, 2));
     if (!summary.runners.every(isAcceptableSmoke)) {

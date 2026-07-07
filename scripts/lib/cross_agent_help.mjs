@@ -101,6 +101,14 @@ export async function getCrossAgentHelp(args = {}, options = {}) {
         output_cap: `Help summaries are capped at ${DEFAULTS.help_max_bytes} bytes.`,
         recursion: 'Safe in planning flows because it does not invoke agents.',
       },
+      {
+        name: 'qe_run_openai_compat_agent',
+        side_effects: 'Experiment-only, env-gated standalone network runner. Makes a single chat completion call to the configured OpenAI-compatible endpoint. Returns not_installed when QE_OPENAI_COMPAT_BASE_URL is unset. NOT a delegate target.',
+        auth: 'Auth via env-only QE_OPENAI_COMPAT_API_KEY; key is never logged or returned. Passing a key in args is refused (policy_denied).',
+        timeout: `Bounded by timeout_ms; default 60000 ms, max 120000 ms.`,
+        output_cap: `Bounded by max_output_bytes; default 24000 bytes, max 24000 bytes.`,
+        recursion: 'Standalone runner only. Not routable via qe_delegate_agent. Do not invoke from nested agent tasks.',
+      },
     ],
     defaults: {
       allow_writes: false,
@@ -122,8 +130,8 @@ export async function getCrossAgentHelp(args = {}, options = {}) {
       raw_help_text: 'not-returned',
     },
     delegation_engine: {
-      public_tools: ['qe_delegate_agent', 'qe_run_codex_agent', 'qe_run_claude_agent'],
-      compatibility_wrappers: ['qe_run_codex_agent', 'qe_run_claude_agent'],
+      public_tools: ['qe_delegate_agent', 'qe_run_codex_agent', 'qe_run_claude_agent', 'qe_run_openai_compat_agent'],
+      compatibility_wrappers: ['qe_run_codex_agent', 'qe_run_claude_agent', 'qe_run_openai_compat_agent'],
       lifecycle_tools: ['qe_agent_run_status', 'qe_agent_run_read'],
       internal_route: true,
       public_route: true,

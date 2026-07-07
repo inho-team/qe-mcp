@@ -294,6 +294,21 @@ export function buildToolSchemas() {
     },
   };
 
+  // Bespoke schema for the network-only openai-compat runner.
+  // Does NOT spread commonProperties: no cwd/sandbox_mode/permission_mode/allow_writes.
+  // Bounds match the runner clamps: timeout_ms max 120000, max_output_bytes max 24000.
+  const openaiCompatSchema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      task: { type: 'string' },
+      prompt: { type: 'string' },
+      model: { type: 'string' },
+      timeout_ms: { type: 'integer', minimum: 1000, maximum: 120000 },
+      max_output_bytes: { type: 'integer', minimum: 200, maximum: 24000 },
+    },
+  };
+
   return {
     codex: codexSchema,
     claude: claudeSchema,
@@ -301,11 +316,13 @@ export function buildToolSchemas() {
     delegate: delegateSchema,
     status: statusSchema,
     read: readSchema,
+    openaiCompat: openaiCompatSchema,
     qe_run_codex_agent: codexSchema,
     qe_run_claude_agent: claudeSchema,
     qe_cross_agent_help: helpSchema,
     qe_delegate_agent: delegateSchema,
     qe_agent_run_status: statusSchema,
     qe_agent_run_read: readSchema,
+    qe_run_openai_compat_agent: openaiCompatSchema,
   };
 }

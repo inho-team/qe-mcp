@@ -7,6 +7,18 @@ This repository holds the large optional expert corpus outside
 compact search and recommendation by default, then returns full expert content
 only after an explicit MCP tool or prompt call.
 
+## Migrating 0.3 → 0.4
+
+0.4.0 exposes `qe_run_openai_compat_agent` as an experiment-only, env-gated
+standalone runner for OpenAI-compatible endpoints. It is not a `qe_delegate_agent`
+target and does not change the frozen CLI delegation contract (`claude`, `codex`).
+
+- Configure it with `QE_OPENAI_COMPAT_BASE_URL`, `QE_OPENAI_COMPAT_API_KEY`, and
+  `QE_OPENAI_COMPAT_MODEL`.
+- API keys are env-only. Passing key-like fields in tool arguments is rejected.
+- If `QE_OPENAI_COMPAT_BASE_URL` is unset, the tool returns structured
+  `not_installed` without making a network call.
+
 ## Migrating 0.2 → 0.3 (breaking)
 
 0.3.0 splits the expert library into a shipped **core** pack (25 experts) and an
@@ -118,8 +130,7 @@ qe-mcp-server
 In the client, the MCP tool list should include `qeExpertLibrary` tools such as
 `qe_search_experts`, `qe_read_expert`, `qe_run_codex_agent`,
 `qe_run_claude_agent`, `qe_delegate_agent`, `qe_agent_run_status`,
-`qe_agent_run_read`, `qe_cross_agent_help`, and the bounded QE maintenance and
-supervisor tools.
+`qe_agent_run_read`, `qe_run_openai_compat_agent`, and `qe_cross_agent_help`.
 
 ## Tools
 
@@ -127,22 +138,13 @@ supervisor tools.
 - `qe_recommend_expert`: task-based expert recommendation
 - `qe_read_expert`: explicit bounded expert read
 - `qe_read_methodology`: explicit bounded methodology/reference read
-- `qe_expert_prompt`: build a bounded expert prompt payload
-- `qe_expert_library_help`: quick server usage summary
 - `qe_run_codex_agent`: bounded local Codex CLI runner with capped timeout/output and default read-only posture
 - `qe_run_claude_agent`: bounded local Claude CLI runner with capped timeout/output and fixed plan-mode posture
 - `qe_delegate_agent`: generic bounded local delegation tool for `target_engine: "codex"` or `"claude"`
 - `qe_agent_run_status`: read a compact lifecycle status projection by `run_id`
 - `qe_agent_run_read`: read a bounded, redacted lifecycle/result projection by `run_id`
+- `qe_run_openai_compat_agent`: experiment-only OpenAI-compatible endpoint runner, env-gated and standalone
 - `qe_cross_agent_help`: passive local runner contract and CLI capability summary
-- `qe_list_maintenance_jobs`: passive catalog of QE maintenance jobs and permission classes
-- `qe_run_maintenance_job`: dry-run or run-once predefined maintenance jobs with source/config writes, secrets, runner delegation, recursion, and internal scheduling denied
-- `qe_get_maintenance_job_status`: read recorded maintenance job/run status
-- `qe_get_maintenance_job_log`: read bounded slices of recorded maintenance run logs
-- `qe_supervisor_status`: read bounded supervisor status projection
-- `qe_supervisor_events`: read bounded supervisor events with severity and ack filters
-- `qe_supervisor_ack`: acknowledge one supervisor event by `event_id`
-- `qe_supervisor_specs`: list supervisor monitor specs
 
 ## Resources
 
@@ -166,10 +168,12 @@ npm run runner:smoke
 ```
 
 `runner:smoke` launches the local MCP server and calls `qe_cross_agent_help`,
-`qe_run_codex_agent`, and `qe_run_claude_agent` through the stdio MCP tool path.
-Authenticated runners should return `status: "ok"`. Missing local login,
-missing CLI installs, provider quota limits, or bounded timeouts are reported as
-structured graceful failures instead of raw crashes.
+`qe_run_codex_agent`, `qe_run_claude_agent`, and `qe_run_openai_compat_agent`
+through the stdio MCP tool path. Authenticated local CLI runners should return
+`status: "ok"`. The openai-compat runner returns structured `not_installed`
+when no endpoint is configured. Missing local login, missing CLI installs,
+provider quota limits, or bounded timeouts are reported as structured graceful
+failures instead of raw crashes.
 
 ## Trust Boundary
 
@@ -210,6 +214,10 @@ integration needs the legacy engine-specific wrapper. Use `qe_delegate_agent`
 when a caller wants the engine-level contract and explicit target selection.
 Use `qe_agent_run_status` or `qe_agent_run_read` after delegation when a caller
 needs bounded lifecycle inspection without raw capture exposure.
+
+`qe_run_openai_compat_agent` is separate from delegation. It makes one bounded
+network call to the configured OpenAI-compatible endpoint and is disabled by
+default. It never accepts API keys through tool arguments.
 
 Do not use the active runner tools for untrusted prompts, broad autonomous
 edits, or tasks that require inheriting a user's full MCP configuration.

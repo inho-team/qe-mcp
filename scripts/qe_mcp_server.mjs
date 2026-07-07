@@ -126,6 +126,17 @@ const FALLBACK_AGENT_TOOL_SCHEMAS = {
       include_transitions: { type: 'boolean' },
     },
   },
+  qe_run_openai_compat_agent: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      task: { type: 'string' },
+      prompt: { type: 'string' },
+      model: { type: 'string' },
+      timeout_ms: { type: 'integer', minimum: 1000, maximum: 120000 },
+      max_output_bytes: { type: 'integer', minimum: 200, maximum: 24000 },
+    },
+  },
 };
 
 const AGENT_TOOL_HELP = [
@@ -152,6 +163,14 @@ const AGENT_TOOL_HELP = [
     timeout: 'Returns immediately from local help data.',
     outputCap: 'Structured help payload is compact local metadata.',
     recursion: 'Safe to call during planning because it does not recurse into other agents.',
+  },
+  {
+    name: 'qe_run_openai_compat_agent',
+    sideEffects: 'Makes a network call to the configured OpenAI-compatible endpoint (QE_OPENAI_COMPAT_BASE_URL). Experiment-only, env-gated: returns not_installed when the env var is unset.',
+    auth: 'Auth via env-only QE_OPENAI_COMPAT_API_KEY; the key is never logged and never appears in any returned result. Passing a key in args is refused (policy_denied).',
+    timeout: 'Bounded by timeout_ms; default 60000 ms, max 120000 ms.',
+    outputCap: 'Bounded by max_output_bytes; default 24000 bytes, max 24000 bytes.',
+    recursion: 'Standalone network runner only. Not a delegate target. Do not invoke from a nested agent task that could route back into this tool.',
   },
 ];
 const EXPOSE_RESOURCES = process.env.QE_MCP_EXPOSE_RESOURCES === '1';
@@ -182,6 +201,7 @@ async function loadOptionalAgentHelpers() {
     ['runDelegateAgent', './lib/delegate_runner.mjs'],
     ['getCrossAgentHelp', './lib/cross_agent_help.mjs'],
     ['buildToolSchemas', './lib/agent_runner_contract.mjs'],
+    ['runOpenAiCompatAgent', './lib/openai_compat_runner.mjs'],
   ];
 
   for (const [exportName, specifier] of optionalModules) {
@@ -227,6 +247,8 @@ function getAgentToolSchemas() {
         helperSchemas.qe_agent_run_status || helperSchemas.status || FALLBACK_AGENT_TOOL_SCHEMAS.qe_agent_run_status,
       qe_agent_run_read:
         helperSchemas.qe_agent_run_read || helperSchemas.read || FALLBACK_AGENT_TOOL_SCHEMAS.qe_agent_run_read,
+      qe_run_openai_compat_agent:
+        helperSchemas.qe_run_openai_compat_agent || helperSchemas.openaiCompat || FALLBACK_AGENT_TOOL_SCHEMAS.qe_run_openai_compat_agent,
     };
   } catch {
     return FALLBACK_AGENT_TOOL_SCHEMAS;
@@ -490,6 +512,12 @@ function listTools() {
         'Read a bounded redacted lifecycle projection for a delegated run by run_id. Side effects: none. Returns direction, decision, transitions, and compact output metadata only.',
       inputSchema: agentToolSchemas.qe_agent_run_read,
     },
+    {
+      name: 'qe_run_openai_compat_agent',
+      description:
+        'Experiment-only, env-gated: run a bounded chat completion against a configured OpenAI-compatible endpoint. Returns not_installed when QE_OPENAI_COMPAT_BASE_URL is unset. Auth via env-only QE_OPENAI_COMPAT_API_KEY; key is never logged or returned. Standalone runner — not a delegate target. Side effects: network call to configured endpoint only.',
+      inputSchema: agentToolSchemas.qe_run_openai_compat_agent,
+    },
   ];
 }
 
@@ -539,6 +567,10 @@ async function callTool(name, args = {}) {
 
   if (name === 'qe_run_claude_agent') {
     return callRunnerTool(name, optionalAgentHelpers.runClaudeAgent, args);
+  }
+
+  if (name === 'qe_run_openai_compat_agent') {
+    return callRunnerTool(name, optionalAgentHelpers.runOpenAiCompatAgent, args, 'openai-compat');
   }
 
   if (name === 'qe_cross_agent_help') {

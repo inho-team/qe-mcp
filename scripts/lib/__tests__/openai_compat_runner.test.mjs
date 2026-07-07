@@ -79,3 +79,71 @@ test('resolveConfig strips trailing slash from base url', () => {
   assert.equal(r.ok, true);
   assert.equal(r.config.baseUrl, 'https://x/v1');
 });
+
+// --- P7 W2 / D014: envelope parity, full branch order, key-leak hardening ---
+
+// Asserts a result carries the full AgentRunResult envelope (parity with codex/claude).
+function assertFullEnvelope(r) {
+  for (const f of ['engine', 'status', 'summary', 'output', 'events', 'metadata', 'normalization', 'error']) {
+    assert.ok(f in r, `envelope missing field: ${f}`);
+  }
+  assert.deepEqual(r.events, []);
+  assert.equal(r.normalization.output_format, 'text');
+  assert.equal(typeof r.normalization.truncated, 'boolean');
+  assert.equal(typeof r.normalization.stdout_bytes, 'number');
+  assert.equal(r.normalization.stderr_bytes, 0);
+  // Network-meaningless CLI metadata is null, never fabricated.
+  assert.equal(r.metadata.cwd, null);
+  assert.equal(r.metadata.exit_code, null);
+  assert.equal(r.metadata.signal, null);
+  // Single source of truth for truncation.
+  assert.equal(r.metadata.truncated, r.normalization.truncated);
+}
+
+test('envelope parity: success path carries events + normalization', async () => {
+  const r = await runOpenAiCompatAgent({ prompt: 'q' }, { env: GOOD_ENV, fetchImpl: fakeFetch({ choices: [{ message: { content: 'hello' } }] }) });
+  assert.equal(r.status, 'ok');
+  assertFullEnvelope(r);
+  assert.equal(r.normalization.stdout_bytes, Buffer.byteLength('hello', 'utf8'));
+});
+
+test('envelope parity: error branches carry events + normalization', async () => {
+  const notInstalled = await runOpenAiCompatAgent({ prompt: 'q' }, { env: {}, fetchImpl: fakeFetch({}) });
+  assertFullEnvelope(notInstalled);
+  const malformed = await runOpenAiCompatAgent({ prompt: 'q' }, { env: GOOD_ENV, fetchImpl: fakeFetch({ nope: true }) });
+  assertFullEnvelope(malformed);
+});
+
+test('resolveConfig 5-branch order (arg-key precedence over not_installed)', () => {
+  // 1. arg-supplied key is refused BEFORE the baseUrl check, even with an empty env.
+  const argKey = resolveConfig({ api_key: 'x' }, {});
+  assert.equal(argKey.ok, false);
+  assert.equal(argKey.result.error.category, 'policy_denied');
+  // 2. missing baseUrl -> not_installed
+  assert.equal(resolveConfig({}, {}).result.error.category, 'not_installed');
+  // 3. baseUrl set, missing key -> auth_missing
+  assert.equal(resolveConfig({}, { [ENDPOINT_ENV]: 'https://x/v1', QE_OPENAI_COMPAT_MODEL: 'm' }).result.error.category, 'auth_missing');
+  // 4. baseUrl + key set, missing model -> policy_denied
+  assert.equal(resolveConfig({}, { [ENDPOINT_ENV]: 'https://x/v1', [KEY_ENV]: 'k' }).result.error.category, 'policy_denied');
+  // 5. non-https non-localhost -> policy_denied
+  assert.equal(resolveConfig({}, { [ENDPOINT_ENV]: 'http://x/v1', [KEY_ENV]: 'k', QE_OPENAI_COMPAT_MODEL: 'm' }).result.error.category, 'policy_denied');
+});
+
+test('key never leaks on any post-Authorization failure branch', async () => {
+  const abortErr = new Error('aborted');
+  abortErr.name = 'AbortError';
+  const branches = [
+    ['timeout', fakeFetch({}, { throwErr: abortErr })],
+    ['nonzero_exit', fakeFetch({}, { throwErr: new Error('connection reset') })],
+    ['auth_missing', fakeFetch({}, { ok: false, status: 401 })],
+    ['auth_missing', fakeFetch({}, { ok: false, status: 403 })],
+    ['malformed_output', fakeFetch({ nope: true })],
+  ];
+  for (const [expectedCategory, fetchImpl] of branches) {
+    const r = await runOpenAiCompatAgent({ prompt: 'q' }, { env: GOOD_ENV, fetchImpl });
+    assert.equal(r.error.category, expectedCategory);
+    // The key is placed in the Authorization header BEFORE these branches fire;
+    // assert it never surfaces anywhere in the whole returned envelope.
+    assert.doesNotMatch(JSON.stringify(r), /SECRET_KEY_VALUE/);
+  }
+});

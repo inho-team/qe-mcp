@@ -1,8 +1,8 @@
-// openai_compat_runner.mjs — bounded runner core for an OpenAI-compatible engine
-// (e.g. the experimental Fugu vendor). This is the trust-boundary + request/response
-// core only; it is deliberately NOT yet registered as an MCP tool or added to the
-// frozen RUNNER_ENGINES contract. That integration (and the live 10-task benchmark)
-// is deferred until a real endpoint is available to verify end to end.
+// openai_compat_runner.mjs — bounded runner for a generic OpenAI-compatible endpoint.
+// This module is now an opt-in, experiment-only MCP tool (qe_run_openai_compat_agent),
+// env-gated via QE_OPENAI_COMPAT_BASE_URL. The 10-task benchmark (G042) that previously
+// gated this integration was DROPPED per DECISION_LOG D014: claude+codex already provide
+// cross-model independence; a Fugu-as-default benchmark contradicts QE philosophy.
 //
 // Trust boundary (inherited from the QE runner contract):
 //   - API key is ENV-ONLY. Passing a key in args is refused (policy_denied).
@@ -19,19 +19,65 @@ export const MODEL_ENV = 'QE_OPENAI_COMPAT_MODEL';
 
 const KEY_ARG_FIELDS = ['api_key', 'apiKey', 'key', 'authorization', 'token'];
 
-function errorResult(category, message) {
+/** Clamps a string to maxBytes UTF-8 bytes, returning the clamped string. */
+function clampBytes(str, maxBytes) {
+  const buf = Buffer.from(String(str), 'utf8');
+  return buf.length <= maxBytes ? String(str) : buf.subarray(0, maxBytes).toString('utf8');
+}
+
+/**
+ * Single choke-point for all result envelopes returned by this runner.
+ * Every return path (success and all errorResult branches) passes through here
+ * to guarantee full envelope parity with sibling runners (codex/claude).
+ * Fields: engine, status, summary, output, events, metadata, normalization, error.
+ * Network-meaningless metadata fields (cwd, exit_code, signal) are set to null.
+ */
+function normalizeEnvelope(partial) {
+  const output = typeof partial.output === 'string' ? partial.output : '';
+  const truncated = Boolean(partial.metadata?.truncated ?? false);
   return {
+    engine: partial.engine ?? 'openai-compat',
+    status: partial.status ?? 'error',
+    summary: partial.summary ?? '',
+    output,
+    events: [],
+    metadata: {
+      cwd: null,
+      model: partial.metadata?.model ?? null,
+      duration_ms: partial.metadata?.duration_ms ?? 0,
+      exit_code: null,
+      signal: null,
+      vendor: partial.metadata?.vendor ?? 'openai-compat',
+      truncated,
+    },
+    normalization: {
+      output_format: 'text',
+      truncated,
+      stdout_bytes: Buffer.byteLength(output, 'utf8'),
+      stderr_bytes: 0,
+    },
+    error: partial.error ?? null,
+  };
+}
+
+/** Builds a structured error result for all non-success branches. */
+function errorResult(category, message) {
+  return normalizeEnvelope({
     engine: 'openai-compat',
     status: 'error',
     summary: '',
     output: '',
     error: makeRunnerError(category, message),
     metadata: { vendor: 'openai-compat' },
-  };
+  });
 }
 
-// Resolve endpoint/key/model from the environment only. Returns { ok, config } or
-// { ok:false, result } with a structured error.
+/**
+ * Resolves endpoint/key/model from the environment only.
+ * Returns `{ ok: true, config }` on success or `{ ok: false, result }` with a
+ * structured error envelope on any policy/auth/config failure.
+ * Args-supplied key fields are always rejected (policy_denied) before any other check.
+ */
 export function resolveConfig(args = {}, env = process.env) {
   for (const field of KEY_ARG_FIELDS) {
     if (args[field] != null) {
@@ -52,14 +98,11 @@ export function resolveConfig(args = {}, env = process.env) {
   return { ok: true, config: { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey, model } };
 }
 
-function clampBytes(str, maxBytes) {
-  const buf = Buffer.from(String(str), 'utf8');
-  return buf.length <= maxBytes ? String(str) : buf.subarray(0, maxBytes).toString('utf8');
-}
-
-// Run one bounded chat completion against an OpenAI-compatible endpoint.
-// The key is read from env, sent only in the Authorization header, and never
-// logged or returned. Returns an AgentRunResult-shaped object.
+/**
+ * Run one bounded chat completion against an OpenAI-compatible endpoint.
+ * The key is read from env, sent only in the Authorization header, and never
+ * logged or returned. Returns a full AgentRunResult-shaped envelope via normalizeEnvelope.
+ */
 export async function runOpenAiCompatAgent(args = {}, options = {}) {
   const env = options.env || process.env;
   const fetchImpl = options.fetchImpl || globalThis.fetch;
@@ -109,12 +152,13 @@ export async function runOpenAiCompatAgent(args = {}, options = {}) {
   if (typeof content !== 'string') return errorResult('malformed_output', 'response missing choices[0].message.content');
 
   const output = clampBytes(content, maxBytes);
-  return {
+  const wasTruncated = Buffer.byteLength(output, 'utf8') < Buffer.byteLength(content, 'utf8');
+  return normalizeEnvelope({
     engine: 'openai-compat',
     status: 'ok',
     summary: output.split('\n', 1)[0].slice(0, 200),
     output,
     error: null,
-    metadata: { vendor: 'openai-compat', model, truncated: output.length < content.length },
-  };
+    metadata: { vendor: 'openai-compat', model, truncated: wasTruncated },
+  });
 }
