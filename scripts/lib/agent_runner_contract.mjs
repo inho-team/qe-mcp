@@ -28,16 +28,19 @@ export const DEFAULT_RUNNER_POLICY = Object.freeze({
   max_call_depth: 1,
   mcp_policy: 'none',
   output_mode: 'json',
+  codex_config_mode: 'isolated',
 });
 
 export const RUNNER_ENGINES = Object.freeze(['claude', 'codex']);
 export const CODEX_SANDBOX_MODES = Object.freeze(['read-only', 'workspace-write']);
+export const CODEX_CONFIG_MODES = Object.freeze(['isolated', 'native']);
 export const CLAUDE_PERMISSION_MODES = Object.freeze(['plan']);
 export const MCP_POLICIES = Object.freeze(['none']);
 export const OUTPUT_MODES = Object.freeze(['text', 'json', 'stream-json', 'jsonl']);
 
 const RUNNER_ENGINE_SET = new Set(RUNNER_ENGINES);
 const CODEX_SANDBOX_MODE_SET = new Set(CODEX_SANDBOX_MODES);
+const CODEX_CONFIG_MODE_SET = new Set(CODEX_CONFIG_MODES);
 const CLAUDE_PERMISSION_MODE_SET = new Set(CLAUDE_PERMISSION_MODES);
 const MCP_POLICY_SET = new Set(MCP_POLICIES);
 const OUTPUT_MODE_SET = new Set(OUTPUT_MODES);
@@ -114,12 +117,19 @@ export function normalizeAgentRunRequest(args = {}, options = {}) {
 
   const allowWrites = Boolean(args.allow_writes);
   const sandboxMode = args.sandbox_mode || DEFAULT_RUNNER_POLICY.sandbox_mode;
+  const codexConfigMode = args.codex_config_mode || DEFAULT_RUNNER_POLICY.codex_config_mode;
   const permissionMode = args.permission_mode || DEFAULT_RUNNER_POLICY.permission_mode;
   const mcpPolicy = args.mcp_policy || DEFAULT_RUNNER_POLICY.mcp_policy;
   const outputMode = args.output_mode || (engine === 'codex' ? 'jsonl' : 'json');
 
   if (!CODEX_SANDBOX_MODE_SET.has(sandboxMode)) {
     throw policyDenied('sandbox_mode denied; danger-full-access is not allowed');
+  }
+  if (!CODEX_CONFIG_MODE_SET.has(codexConfigMode)) {
+    throw policyDenied('codex_config_mode denied');
+  }
+  if (engine !== 'codex' && codexConfigMode !== DEFAULT_RUNNER_POLICY.codex_config_mode) {
+    throw policyDenied('codex_config_mode is only supported for codex');
   }
   if (sandboxMode === 'workspace-write' && !allowWrites) {
     throw policyDenied('workspace-write requires allow_writes=true');
@@ -145,6 +155,7 @@ export function normalizeAgentRunRequest(args = {}, options = {}) {
     }),
     allow_writes: allowWrites,
     sandbox_mode: sandboxMode,
+    codex_config_mode: codexConfigMode,
     permission_mode: permissionMode,
     max_turns: asInteger(args.max_turns, DEFAULT_RUNNER_POLICY.max_turns, { min: 1, max: 5 }),
     max_budget_usd: asNumber(args.max_budget_usd, DEFAULT_RUNNER_POLICY.max_budget_usd, { min: 0, max: 10 }),
@@ -169,6 +180,7 @@ export function createBaseResult(request, overrides = {}) {
     metadata: {
       cwd: request.cwd,
       model: request.model || null,
+      codex_config_mode: request.codex_config_mode || null,
       duration_ms: overrides.duration_ms || 0,
       exit_code: overrides.exit_code ?? null,
       signal: overrides.signal ?? null,
@@ -231,6 +243,7 @@ export function buildToolSchemas() {
     properties: {
       ...commonProperties,
       sandbox_mode: { type: 'string', enum: CODEX_SANDBOX_MODES },
+      codex_config_mode: { type: 'string', enum: CODEX_CONFIG_MODES },
     },
   };
   const claudeSchema = {
@@ -256,6 +269,7 @@ export function buildToolSchemas() {
     properties: {
       ...commonProperties,
       target_engine: { type: 'string', enum: RUNNER_ENGINES },
+      codex_config_mode: { type: 'string', enum: CODEX_CONFIG_MODES },
       intent: { type: 'string' },
       policy: {
         type: 'object',
@@ -263,6 +277,7 @@ export function buildToolSchemas() {
         properties: {
           allow_writes: { type: 'boolean' },
           sandbox_mode: { type: 'string', enum: CODEX_SANDBOX_MODES },
+          codex_config_mode: { type: 'string', enum: CODEX_CONFIG_MODES },
           permission_mode: { type: 'string', enum: CLAUDE_PERMISSION_MODES },
           mcp_policy: { type: 'string', enum: MCP_POLICIES },
           max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 1 },

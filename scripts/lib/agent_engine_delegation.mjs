@@ -94,9 +94,10 @@ export function buildPromptEnvelope(request = {}, direction = buildDelegationDir
     `call_depth: ${direction.call_depth}`,
     `cwd: ${request.cwd || ''}`,
     `write_posture: ${request.allow_writes ? 'explicit-writes-enabled' : 'read-only-default'}`,
+    `codex_config_mode: ${request.codex_config_mode || 'isolated'}`,
     `mcp_policy: ${request.mcp_policy || 'none'}`,
     `output_mode: ${request.output_mode || 'json'}`,
-    'trust_boundary: child agents do not inherit parent MCP config, secrets, or unbounded permissions.',
+    'trust_boundary: child agents do not receive parent MCP config, secrets, or unbounded permissions; codex native config mode may load the target Codex user configuration.',
     'project_instructions: follow repository instruction files visible from the delegated cwd.',
   ];
 
@@ -199,6 +200,7 @@ function requestMetadata(request = {}, envelope = {}) {
     max_output_bytes: request.max_output_bytes,
     allow_writes: Boolean(request.allow_writes),
     sandbox_mode: request.sandbox_mode || null,
+    codex_config_mode: request.codex_config_mode || null,
     permission_mode: request.permission_mode || null,
     max_turns: request.max_turns,
     max_budget_usd: request.max_budget_usd,

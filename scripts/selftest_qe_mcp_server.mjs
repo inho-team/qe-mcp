@@ -189,13 +189,18 @@ function createFakeSpawn({ stdout = '', stderr = '', code = 0, delayMs = 0, neve
 function createCountingFakeSpawn(options = {}) {
   const fakeSpawn = createFakeSpawn(options);
   let count = 0;
+  const calls = [];
   return {
     spawnImpl(...args) {
       count += 1;
+      calls.push(args);
       return fakeSpawn(...args);
     },
     get count() {
       return count;
+    },
+    get calls() {
+      return calls;
     },
   };
 }
@@ -386,12 +391,37 @@ async function runDelegationEngineCoreTests(helperExports) {
   if (successSpawn.count !== 1) {
     throw new Error('accepted delegation did not launch exactly one subprocess');
   }
+  const isolatedArgs = successSpawn.calls[0]?.[1] || [];
+  if (!isolatedArgs.includes('--ignore-user-config') || !isolatedArgs.includes('--ignore-rules')) {
+    throw new Error('codex runner default mode did not preserve isolated config flags');
+  }
   const lifecycleRecord = readLifecycleRecordFromResult(delegated, helperExports);
   if (!hasDelegationDirection(delegated.metadata) && !hasDelegationDirection(lifecycleRecord)) {
     throw new Error('delegation direction metadata missing from result/lifecycle');
   }
   if (!lifecycleRecord) {
     throw new Error('delegation lifecycle record missing from run id');
+  }
+
+  const nativeSpawn = createCountingFakeSpawn({
+    stdout: '{"type":"result","summary":"native config ok","result":"native config ok"}\n',
+  });
+  const nativeDelegated = await helperExports.codexRunner.runCodexAgent(
+    {
+      task: 'native config mode probe',
+      origin_engine: 'claude',
+      intent: 'native-config-mode-selftest',
+      timeout_ms: 1000,
+      codex_config_mode: 'native',
+    },
+    { spawnImpl: nativeSpawn.spawnImpl }
+  );
+  if (nativeDelegated.status !== 'ok') {
+    throw new Error('codex native config mode delegation failed');
+  }
+  const nativeArgs = nativeSpawn.calls[0]?.[1] || [];
+  if (nativeArgs.includes('--ignore-user-config') || nativeArgs.includes('--ignore-rules')) {
+    throw new Error('codex native config mode still ignored user config/rules');
   }
   assertNoRawLifecycleCapture(lifecycleRecord, 'delegation lifecycle record');
   if (
@@ -670,6 +700,7 @@ async function runRunnerModuleTests() {
     schemas.qe_run_claude_agent.properties.permission_mode.enum.length !== 1 ||
     schemas.qe_run_claude_agent.properties.permission_mode.enum[0] !== 'plan' ||
     schemas.qe_run_claude_agent.properties.mcp_policy.enum[0] !== 'none' ||
+    schemas.qe_run_codex_agent.properties.codex_config_mode.enum.join(',') !== 'isolated,native' ||
     schemas.qe_run_codex_agent.properties.max_concurrent_runs.maximum !== 1 ||
     !schemas.qe_run_codex_agent.properties.task
   ) {
@@ -1283,7 +1314,8 @@ async function main() {
         !helperSchemas?.qe_run_codex_agent?.properties?.task ||
         !helperSchemas?.qe_run_claude_agent?.properties?.task ||
         helperSchemas?.qe_run_claude_agent?.properties?.permission_mode?.enum?.join(',') !== 'plan' ||
-        helperSchemas?.qe_run_codex_agent?.properties?.mcp_policy?.enum?.join(',') !== 'none'
+        helperSchemas?.qe_run_codex_agent?.properties?.mcp_policy?.enum?.join(',') !== 'none' ||
+        helperSchemas?.qe_run_codex_agent?.properties?.codex_config_mode?.enum?.join(',') !== 'isolated,native'
       ) {
         throw new Error('buildToolSchemas export did not return an object');
       }

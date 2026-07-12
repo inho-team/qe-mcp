@@ -5,6 +5,7 @@ import { runCodexAgent } from './codex_runner.mjs';
 const ALLOWED_POLICY_FIELDS = new Set([
   'allow_writes',
   'sandbox_mode',
+  'codex_config_mode',
   'permission_mode',
   'mcp_policy',
   'max_concurrent_runs',

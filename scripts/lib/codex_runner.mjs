@@ -46,7 +46,11 @@ export async function runCodexAgent(args = {}, options = {}) {
     }
     const startedTransition = await transitionSafely(run, 'started', { reason: 'launching codex bounded runner' });
     const delegatedRequest = { ...request, prompt: run.envelope.prompt };
-    const commandArgs = ['exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '-C', request.cwd];
+    const commandArgs = ['exec', '--ephemeral'];
+    if (request.codex_config_mode !== 'native') {
+      commandArgs.push('--ignore-user-config', '--ignore-rules');
+    }
+    commandArgs.push('-C', request.cwd);
     commandArgs.push('--sandbox', request.allow_writes ? request.sandbox_mode : 'read-only');
     if (request.output_mode === 'jsonl' || request.output_mode === 'stream-json') commandArgs.push('--json');
     if (request.model) commandArgs.push('--model', request.model);

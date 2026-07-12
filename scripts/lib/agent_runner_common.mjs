@@ -159,6 +159,7 @@ export function makeAgentRunResult({
     metadata: {
       cwd: request.cwd || metadata.cwd || '',
       model: request.model || metadata.model || null,
+      codex_config_mode: request.codex_config_mode || metadata.codex_config_mode || null,
       duration_ms: metadata.duration_ms || 0,
       exit_code: metadata.exit_code ?? null,
       signal: metadata.signal ?? null,

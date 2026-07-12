@@ -27,6 +27,7 @@ const FALLBACK_AGENT_TOOL_SCHEMAS = {
       max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
       allow_writes: { type: 'boolean' },
       sandbox_mode: { type: 'string', enum: ['read-only', 'workspace-write'] },
+      codex_config_mode: { type: 'string', enum: ['isolated', 'native'] },
       call_depth: { type: 'integer', minimum: 0, maximum: 1 },
       call_chain_id: { type: 'string' },
       origin_engine: { type: 'string' },
@@ -79,6 +80,7 @@ const FALLBACK_AGENT_TOOL_SCHEMAS = {
       max_output_bytes: { type: 'integer', minimum: 200, maximum: 1000000 },
       allow_writes: { type: 'boolean' },
       sandbox_mode: { type: 'string', enum: ['read-only', 'workspace-write'] },
+      codex_config_mode: { type: 'string', enum: ['isolated', 'native'] },
       permission_mode: { type: 'string', enum: ['plan'] },
       call_depth: { type: 'integer', minimum: 0, maximum: 1 },
       call_chain_id: { type: 'string' },
@@ -94,6 +96,7 @@ const FALLBACK_AGENT_TOOL_SCHEMAS = {
         properties: {
           allow_writes: { type: 'boolean' },
           sandbox_mode: { type: 'string', enum: ['read-only', 'workspace-write'] },
+          codex_config_mode: { type: 'string', enum: ['isolated', 'native'] },
           permission_mode: { type: 'string', enum: ['plan'] },
           mcp_policy: { type: 'string', enum: ['none'] },
           max_concurrent_runs: { type: 'integer', minimum: 1, maximum: 1 },
@@ -479,7 +482,7 @@ function listTools() {
     {
       name: 'qe_run_codex_agent',
       description:
-        'Run a bounded local Codex CLI subprocess. Side effects: default read-only; writes require allow_writes and workspace-write. Auth: uses existing local Codex CLI/session auth. Timeout/output: bounded by timeout_ms and max_output_bytes. Recursion and child MCP config inheritance are blocked by default.',
+        'Run a bounded local Codex CLI subprocess. Side effects: default read-only; writes require allow_writes and workspace-write. Auth: uses existing local Codex CLI/session auth. Timeout/output: bounded by timeout_ms and max_output_bytes. Recursion is blocked by default. codex_config_mode defaults to isolated; native mode explicitly loads the target Codex user configuration.',
       inputSchema: agentToolSchemas.qe_run_codex_agent,
     },
     {

@@ -195,6 +195,16 @@ wrappers for callers that already use the engine-specific tool names. They
 should route through the same bounded engine contract as `qe_delegate_agent`;
 they are not separate permission surfaces.
 
+Codex runner calls default to `codex_config_mode: "isolated"`, which launches
+Codex with `--ignore-user-config --ignore-rules` so child runs do not inherit
+the caller's full `~/.codex/config.toml`. When a workflow explicitly needs
+Codex native agents, skills, and rules, opt in with
+`codex_config_mode: "native"`. Native mode still keeps the QE runner caps
+around cwd, timeout, output, sandbox, and recursion, but it allows Codex to
+load the user's normal Codex configuration. That can include native Codex
+agents, skills, rules, hooks, and MCP servers already configured for that
+Codex installation.
+
 `qe_agent_run_status` and `qe_agent_run_read` are bounded lifecycle inspection
 APIs. They accept a `run_id`, read only the QE-managed lifecycle namespace, and
 return compact projections such as direction, decision, timestamps, status,
@@ -204,9 +214,12 @@ paths.
 
 Runner tools launch only local CLIs with existing local auth, sanitize inherited
 environment variables, reject working directories outside this repository, cap
-timeout/output, reject child MCP config inheritance, and block nested
-cross-agent recursion by default. `qe_cross_agent_help` is passive and does not
-launch either runner or read lifecycle records.
+timeout/output, and block nested cross-agent recursion by default. Isolated
+Codex mode rejects child config inheritance by passing `--ignore-user-config`
+and `--ignore-rules`; native Codex mode is explicit opt-in for workflows that
+need the user's configured Codex agents, skills, rules, hooks, or MCP servers.
+`qe_cross_agent_help` is passive and does not launch either runner or read
+lifecycle records.
 
 Use passive expert tools for guidance-only workflows and routine expert-library
 lookups. Use `qe_run_codex_agent` or `qe_run_claude_agent` when an existing
@@ -273,6 +286,21 @@ Minimal Codex runner call:
   "name": "qe_run_codex_agent",
   "arguments": {
     "prompt": "Summarize the current repository constraints.",
+    "timeout_ms": 60000,
+    "max_output_bytes": 24000,
+    "allow_writes": false
+  }
+}
+```
+
+Codex native-config runner call:
+
+```json
+{
+  "name": "qe_run_codex_agent",
+  "arguments": {
+    "prompt": "Use the registered Ecode-reviewer agent to review the current diff.",
+    "codex_config_mode": "native",
     "timeout_ms": 60000,
     "max_output_bytes": 24000,
     "allow_writes": false

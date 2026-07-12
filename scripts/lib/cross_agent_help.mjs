@@ -59,6 +59,7 @@ export async function getCrossAgentHelp(args = {}, options = {}) {
         auth: 'Uses the existing local Codex CLI/session auth only.',
         timeout: `Default ${DEFAULTS.timeout_ms} ms, caller bounded by timeout_ms/timeoutMs.`,
         output_cap: `Default ${DEFAULTS.max_output_bytes} bytes, caller bounded by max_output_bytes/outputCap.`,
+        config_mode: 'Default codex_config_mode=isolated ignores user config/rules; opt-in native loads the target Codex user configuration.',
         recursion: 'Nested cross-agent delegation is denied by default.',
       },
       {
@@ -113,6 +114,7 @@ export async function getCrossAgentHelp(args = {}, options = {}) {
     defaults: {
       allow_writes: false,
       codex_sandbox_mode: 'read-only',
+      codex_config_mode: 'isolated',
       claude_permission_mode: 'plan',
       max_output_bytes: DEFAULTS.max_output_bytes,
       timeout_ms: DEFAULTS.timeout_ms,
@@ -122,7 +124,7 @@ export async function getCrossAgentHelp(args = {}, options = {}) {
     },
     engines: { codex, claude },
     safety: {
-      inherited_mcp_config: false,
+      inherited_mcp_config: 'isolated codex mode: false; codex native mode: target Codex user configuration may load configured MCP servers',
       self_recursive_runner_tools: 'denied-by-default',
       current_surface: 'phase-3-public-engine-surface',
       generic_public_surface: 'qe_delegate_agent targets codex or claude through the bounded engine contract.',
@@ -151,7 +153,7 @@ export async function getCrossAgentHelp(args = {}, options = {}) {
       },
       trust_boundary: {
         local_cli_auth_only: true,
-        inherited_mcp_config: false,
+        inherited_mcp_config: 'false by default; codex_config_mode=native is explicit opt-in to target Codex user configuration',
         writes_default: false,
         concurrent_fanout: false,
         multi_turn_continuation: false,
