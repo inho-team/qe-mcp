@@ -131,7 +131,7 @@ test('openai-compat is NOT added to the frozen CLI delegate contract', () => {
 });
 
 test('MCP server exposes openai-compat in tools/list with the network-only schema', async () => {
-  await withMcpClient({}, async (client) => {
+  await withMcpClient({ QE_MCP_EXPOSE_RUNNERS: '1' }, async (client) => {
     const tools = await client.request('tools/list');
     const tool = tools.result.tools.find((candidate) => candidate.name === 'qe_run_openai_compat_agent');
     assert.ok(tool, 'qe_run_openai_compat_agent missing from tools/list');
@@ -144,7 +144,14 @@ test('MCP server exposes openai-compat in tools/list with the network-only schem
 });
 
 test('MCP server dispatch returns structured not_installed when endpoint env is unset', async () => {
-  await withMcpClient({ QE_OPENAI_COMPAT_BASE_URL: '', QE_OPENAI_COMPAT_API_KEY: '', QE_OPENAI_COMPAT_MODEL: '' }, async (client) => {
+  await withMcpClient(
+    {
+      QE_MCP_EXPOSE_RUNNERS: '1',
+      QE_OPENAI_COMPAT_BASE_URL: '',
+      QE_OPENAI_COMPAT_API_KEY: '',
+      QE_OPENAI_COMPAT_MODEL: '',
+    },
+    async (client) => {
     const response = await client.request('tools/call', {
       name: 'qe_run_openai_compat_agent',
       arguments: { prompt: 'ping' },
@@ -155,7 +162,8 @@ test('MCP server dispatch returns structured not_installed when endpoint env is 
     assert.equal(result.error.category, 'not_installed');
     assert.deepEqual(result.events, []);
     assert.equal(result.normalization.output_format, 'text');
-  });
+    }
+  );
 });
 
 test('MCP server preserves openai-compat engine on success and active-runner limit', async () => {
@@ -165,6 +173,7 @@ test('MCP server preserves openai-compat engine on success and active-runner lim
         QE_OPENAI_COMPAT_BASE_URL: baseUrl,
         QE_OPENAI_COMPAT_API_KEY: 'TEST_KEY',
         QE_OPENAI_COMPAT_MODEL: 'test-model',
+        QE_MCP_EXPOSE_RUNNERS: '1',
       },
       async (client) => {
         const first = client.request('tools/call', {

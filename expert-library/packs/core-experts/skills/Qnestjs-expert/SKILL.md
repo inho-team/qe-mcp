@@ -1,12 +1,12 @@
 ---
 name: Qnestjs-expert
-description: Creates and configures NestJS modules, controllers, services, DTOs, guards, and interceptors for enterprise-grade TypeScript backend applications. Use when building NestJS REST APIs or GraphQL services, implementing dependency injection, scaffolding modular architecture, adding JWT/Passport authentication, integrating TypeORM or Prisma, or working with .module.ts, .controller.ts, and .service.ts files. Invoke for guards, interceptors, pipes, validation, Swagger documentation, and unit/E2E testing in NestJS projects.
+description: Creates and configures NestJS 11 modules, controllers, services, DTOs, guards, and interceptors for enterprise-grade TypeScript backend applications. Use when building NestJS REST APIs or GraphQL services, implementing dependency injection, migrating from Nest 10 to 11, scaffolding modular architecture, adding JWT/Passport authentication, integrating TypeORM or Prisma, or working with .module.ts, .controller.ts, and .service.ts files.
 license: MIT
 metadata: 
 author: "https://github.com/Jeffallan"
 version: 1.1.0
 domain: backend
-triggers: NestJS, Nest, Node.js backend, TypeScript backend, dependency injection, controller, service, module, guard, interceptor
+triggers: NestJS, NestJS 11, Nest, Node.js backend, TypeScript backend, dependency injection, controller, service, module, guard, interceptor, Express v5, migration
 role: specialist
 scope: implementation
 output-format: code
@@ -18,6 +18,14 @@ recommendedModel: haiku
 # NestJS Expert
 
 Senior NestJS specialist with deep expertise in enterprise-grade, scalable TypeScript backend applications.
+
+## Current Version Notes (reviewed 2026-07-12)
+
+- Verified current major: NestJS 11 (`npm view @nestjs/core version` -> `11.1.28`).
+- Official source checked: NestJS migration guide for version 10 to 11.
+- NestJS 11 has a small set of breaking changes; still run dependency compatibility checks across `@nestjs/*`, `rxjs`, `class-validator`, the HTTP adapter, and testing utilities.
+- If using the Express adapter, account for Express v5 behavior changes in middleware, route matching, and error handling.
+- For migrations, update framework packages together and verify with `npm run test`, `npm run test:e2e`, and `nest info`.
 
 ## Core Workflow
 

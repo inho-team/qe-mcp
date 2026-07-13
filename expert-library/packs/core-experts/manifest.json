@@ -23,24 +23,36 @@
       ],
       "checksum": {
         "algorithm": "sha256",
-        "value": "d385d0757f73d88618b25449aa6b0b2c5c9644f59b232b980a6a68c41f711b41"
+        "value": "54ea93035786b3ef1f33038502a005063fae9ae6e395900288187d7990c88475"
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null,
-        "reviewer": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://angular.dev/events/v22",
+          "https://angular.dev/reference/releases",
+          "https://blog.angular.dev/announcing-angular-v22-c52bb83a4664"
+        ],
+        "sourceCommands": [
+          "npm view @angular/core version"
+        ],
+        "currentMajor": 22,
+        "verifiedMajor": 22,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified Angular 22.0.6 against official Angular v22 release and support policy; standalone, signals, strict templates, and support-window guidance refreshed."
       },
       "routing": {
         "triggers": [
           "When specialized language or framework best practices are needed.",
           "Angular",
-          "Angular 17",
+          "Angular 22",
           "standalone components",
           "signals",
+          "signal forms",
           "RxJS",
           "NgRx",
-          "Angular performance",
-          "Angular routing",
           "Angular testing",
           "angular-architect"
         ],
@@ -156,24 +168,35 @@
       ],
       "checksum": {
         "algorithm": "sha256",
-        "value": "142a2e4b84a2f66cca5ecb55c65f39a00c0151ecad9f6b1c272a76468c6009d4"
+        "value": "6c0b3dcf7b58a89cd251d6f34b54a3c2045cfcf93662c84d653928b7cfb61519"
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null,
-        "reviewer": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://docs.djangoproject.com/en/6.0/releases/6.0/",
+          "https://www.djangoproject.com/weblog/2025/dec/03/django-60-released/"
+        ],
+        "sourceCommands": [
+          "python3 -m pip index versions Django"
+        ],
+        "currentMajor": 6,
+        "verifiedMajor": 6,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified Django 6.0.7 against official Django 6.0 release notes; Django 5.2 LTS migration caveat retained."
       },
       "routing": {
         "triggers": [
           "When specialized language or framework best practices are needed.",
           "Django",
+          "Django 6",
+          "Django 6.0",
+          "Django 5.2 LTS",
           "DRF",
           "Django REST Framework",
           "Django ORM",
-          "Django model",
-          "serializer",
-          "viewset",
-          "Python web",
           "django-expert"
         ],
         "relatedCoreSkill": "Qrun-task"
@@ -504,26 +527,33 @@
       ],
       "checksum": {
         "algorithm": "sha256",
-        "value": "cd4c87bd418a242a58cdf36c0cb8c0d9fe14903bc0e431b556199affb36042e9"
+        "value": "f9228aa68cb32d05891852a0908a3f2a47134848faa365747876a7b12241acd2"
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null,
-        "reviewer": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://docs.nestjs.com/migration-guide"
+        ],
+        "sourceCommands": [
+          "npm view @nestjs/core version"
+        ],
+        "currentMajor": 11,
+        "verifiedMajor": 11,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified NestJS 11.1.28 against official NestJS migration guide; Express v5 and package compatibility caveats refreshed."
       },
       "routing": {
         "triggers": [
           "When specialized language or framework best practices are needed.",
           "NestJS",
+          "NestJS 11",
           "Nest",
-          "Node.js backend",
           "TypeScript backend",
-          "dependency injection",
-          "controller",
-          "service",
-          "module",
-          "guard",
-          "interceptor",
+          "Express v5",
+          "migration",
           "nestjs-expert"
         ],
         "relatedCoreSkill": "Qrun-task"
@@ -548,25 +578,40 @@
       ],
       "checksum": {
         "algorithm": "sha256",
-        "value": "831e44fed05e4ffc8f305b35bdeca6aa2436a285a1082804170b8f7a9320679d"
+        "value": "629bdd66f77d274ad3bf2389ea10ee3f61d4756337d072fffc1cd186efbf3cef"
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null,
-        "reviewer": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://nextjs.org/blog/next-16",
+          "https://nextjs.org/blog/next-16-2",
+          "https://nextjs.org/blog/next-16-2-ai",
+          "https://nextjs.org/blog/next-16-2-turbopack",
+          "https://nextjs.org/docs/app/guides/upgrading/version-16"
+        ],
+        "sourceCommands": [
+          "npm view next version"
+        ],
+        "currentMajor": 16,
+        "verifiedMajor": 16,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified Next.js 16.2.10 against official Next.js 16/16.2 docs; App Router, Cache Components, Turbopack, and agent-debugging guidance refreshed."
       },
       "routing": {
         "triggers": [
           "When specialized language or framework best practices are needed.",
           "Next.js",
-          "Next.js 14",
+          "Next.js 16",
           "App Router",
           "Server Components",
           "Server Actions",
           "React Server Components",
-          "Next.js deployment",
+          "Cache Components",
+          "Turbopack",
           "Vercel",
-          "Next.js performance",
           "nextjs-developer"
         ],
         "relatedCoreSkill": "Qrun-task"
@@ -1048,17 +1093,38 @@
       ],
       "checksum": {
         "algorithm": "sha256",
-        "value": "05ea0bcaf760932921e7577d1b4b34ccaaff3f385c092926413edb23970f483c"
+        "value": "a25a18198c86a6bb926e8f103621478f848508771478354e263851ee44c16bf6"
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null,
-        "reviewer": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://vite.dev/blog/announcing-vite8-1",
+          "https://vite.dev/blog/announcing-vite8",
+          "https://vite.dev/releases"
+        ],
+        "sourceCommands": [
+          "npm view vite version"
+        ],
+        "currentMajor": 8,
+        "verifiedMajor": 8,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified Vite 8.1.4 against official Vite 8.1 announcement and supported versions; Rolldown and bundled dev mode caveats refreshed."
       },
       "routing": {
         "triggers": [
           "When specialized language or framework best practices are needed.",
-          "vite"
+          "Vite",
+          "Vite 8",
+          "Vite 8.1",
+          "vite.config.ts",
+          "Vite plugins",
+          "Rolldown",
+          "Environment API",
+          "SSR",
+          "Qvite"
         ],
         "relatedCoreSkill": "Qrun-task"
       },
@@ -1114,6 +1180,6 @@
       }
     }
   ],
-  "generatedAt": "2026-07-06T00:25:48.643Z",
+  "generatedAt": "2026-07-12T16:23:40.351Z",
   "assetCount": 25
 }

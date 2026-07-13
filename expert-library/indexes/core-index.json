@@ -7,17 +7,16 @@
       "name": "Qangular-architect",
       "kind": "skill",
       "domain": "frontend",
-      "summary": "Generates Angular 17+ standalone components, configures advanced routing with lazy loading and guards, implements NgRx state management, applies RxJS patterns, and optimizes bundle performance. Use when building Angular 17+ applications with standalone components or signals, setting up NgRx stores, establishing RxJS reactive patterns, performance tuning, or writing Angular tests for enterprise apps.",
+      "summary": "Generates Angular 22+ standalone components, signal-first state, routing, NgRx/RxJS patterns, performance tuning, and enterprise tests for modern Angular applications.",
       "invocationTriggers": [
         "When specialized language or framework best practices are needed.",
         "Angular",
-        "Angular 17",
+        "Angular 22",
         "standalone components",
         "signals",
+        "signal forms",
         "RxJS",
         "NgRx",
-        "Angular performance",
-        "Angular routing",
         "Angular testing",
         "angular-architect"
       ],
@@ -28,8 +27,22 @@
         "full": 2172
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://angular.dev/events/v22",
+          "https://angular.dev/reference/releases",
+          "https://blog.angular.dev/announcing-angular-v22-c52bb83a4664"
+        ],
+        "sourceCommands": [
+          "npm view @angular/core version"
+        ],
+        "currentMajor": 22,
+        "verifiedMajor": 22,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified Angular 22.0.6 against official Angular v22 release and support policy; standalone, signals, strict templates, and support-window guidance refreshed."
       },
       "clientSupport": {
         "claude": "mcp-tool",
@@ -194,17 +207,16 @@
       "name": "Qdjango-expert",
       "kind": "skill",
       "domain": "backend",
-      "summary": "Use when building Django web applications or REST APIs with Django REST Framework. Invoke when working with settings.py, models.py, manage.py, or any Django project file. Creates Django models with proper indexes, optimizes ORM queries using select_related/prefetch_related, builds DRF serializers and viewsets, and configures JWT authentication. Trigger terms: Django, DRF, Django REST Framework, Django ORM, Django model, serializer, viewset, Python web.",
+      "summary": "Use when building Django 6.0+ web apps or DRF APIs, with ORM optimization, security, migrations, tests, and Django 5.2 LTS migration judgment.",
       "invocationTriggers": [
         "When specialized language or framework best practices are needed.",
         "Django",
+        "Django 6",
+        "Django 6.0",
+        "Django 5.2 LTS",
         "DRF",
         "Django REST Framework",
         "Django ORM",
-        "Django model",
-        "serializer",
-        "viewset",
-        "Python web",
         "django-expert"
       ],
       "relatedCoreSkill": "Qrun-task",
@@ -214,8 +226,21 @@
         "full": 2335
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://docs.djangoproject.com/en/6.0/releases/6.0/",
+          "https://www.djangoproject.com/weblog/2025/dec/03/django-60-released/"
+        ],
+        "sourceCommands": [
+          "python3 -m pip index versions Django"
+        ],
+        "currentMajor": 6,
+        "verifiedMajor": 6,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified Django 6.0.7 against official Django 6.0 release notes; Django 5.2 LTS migration caveat retained."
       },
       "clientSupport": {
         "claude": "mcp-tool",
@@ -670,19 +695,15 @@
       "name": "Qnestjs-expert",
       "kind": "skill",
       "domain": "backend",
-      "summary": "Creates and configures NestJS modules, controllers, services, DTOs, guards, and interceptors for enterprise-grade TypeScript backend applications. Use when building NestJS REST APIs or GraphQL services, implementing dependency injection, scaffolding modular architecture, adding JWT/Passport authentication, integrating TypeORM or Prisma, or working with .module.ts, .controller.ts, and .service.ts files. Invoke for guards, interceptors, pipes, validation, Swagger documentation, and unit/E2E testing in NestJS projects.",
+      "summary": "Creates and configures NestJS 11 modules, controllers, services, DTOs, guards, interceptors, auth, validation, tests, and Nest 10 to 11 migration work.",
       "invocationTriggers": [
         "When specialized language or framework best practices are needed.",
         "NestJS",
+        "NestJS 11",
         "Nest",
-        "Node.js backend",
         "TypeScript backend",
-        "dependency injection",
-        "controller",
-        "service",
-        "module",
-        "guard",
-        "interceptor",
+        "Express v5",
+        "migration",
         "nestjs-expert"
       ],
       "relatedCoreSkill": "Qrun-task",
@@ -692,8 +713,20 @@
         "full": 2184
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://docs.nestjs.com/migration-guide"
+        ],
+        "sourceCommands": [
+          "npm view @nestjs/core version"
+        ],
+        "currentMajor": 11,
+        "verifiedMajor": 11,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified NestJS 11.1.28 against official NestJS migration guide; Express v5 and package compatibility caveats refreshed."
       },
       "clientSupport": {
         "claude": "mcp-tool",
@@ -733,18 +766,18 @@
       "name": "Qnextjs-developer",
       "kind": "skill",
       "domain": "frontend",
-      "summary": "Use when building Next.js 14+ applications with App Router, server components, or server actions. Invoke to configure route handlers, implement middleware, set up API routes, add streaming SSR, write generateMetadata for SEO, scaffold loading.tsx/error.tsx boundaries, or deploy to Vercel. Triggers on: Next.js, Next.js 14, App Router, RSC, use server, Server Components, Server Actions, React Server Components, generateMetadata, loading.tsx, Next.js deployment, Vercel, Next.js performance.",
+      "summary": "Use when building Next.js 16+ applications with App Router, Server Components, Server Actions, Cache Components, Turbopack, Vercel deployment, performance, security, or agent-debuggable project conventions.",
       "invocationTriggers": [
         "When specialized language or framework best practices are needed.",
         "Next.js",
-        "Next.js 14",
+        "Next.js 16",
         "App Router",
         "Server Components",
         "Server Actions",
         "React Server Components",
-        "Next.js deployment",
+        "Cache Components",
+        "Turbopack",
         "Vercel",
-        "Next.js performance",
         "nextjs-developer"
       ],
       "relatedCoreSkill": "Qrun-task",
@@ -754,8 +787,24 @@
         "full": 1747
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://nextjs.org/blog/next-16",
+          "https://nextjs.org/blog/next-16-2",
+          "https://nextjs.org/blog/next-16-2-ai",
+          "https://nextjs.org/blog/next-16-2-turbopack",
+          "https://nextjs.org/docs/app/guides/upgrading/version-16"
+        ],
+        "sourceCommands": [
+          "npm view next version"
+        ],
+        "currentMajor": 16,
+        "verifiedMajor": 16,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified Next.js 16.2.10 against official Next.js 16/16.2 docs; App Router, Cache Components, Turbopack, and agent-debugging guidance refreshed."
       },
       "clientSupport": {
         "claude": "mcp-tool",
@@ -1424,10 +1473,18 @@
       "name": "Qvite",
       "kind": "skill",
       "domain": "frontend",
-      "summary": "Vite build tool configuration, plugin API, SSR, and Vite 8 Rolldown migration. Use when working with Vite projects, vite.config.ts, Vite plugins, or building libraries/SSR apps with Vite.",
+      "summary": "Vite 8.1 build tool configuration, plugin API, SSR, Environment API, Rolldown migration, and large-app dev-server performance guidance.",
       "invocationTriggers": [
         "When specialized language or framework best practices are needed.",
-        "vite"
+        "Vite",
+        "Vite 8",
+        "Vite 8.1",
+        "vite.config.ts",
+        "Vite plugins",
+        "Rolldown",
+        "Environment API",
+        "SSR",
+        "Qvite"
       ],
       "relatedCoreSkill": "Qrun-task",
       "recommendedModel": "haiku",
@@ -1436,8 +1493,22 @@
         "full": 1301
       },
       "review": {
-        "status": "unreviewed",
-        "lastReviewed": null
+        "status": "reviewed",
+        "lastReviewed": "2026-07-12",
+        "sourceDate": "2026-07-12",
+        "sourceUrls": [
+          "https://vite.dev/blog/announcing-vite8-1",
+          "https://vite.dev/blog/announcing-vite8",
+          "https://vite.dev/releases"
+        ],
+        "sourceCommands": [
+          "npm view vite version"
+        ],
+        "currentMajor": 8,
+        "verifiedMajor": 8,
+        "lifecycle": "trusted-current",
+        "reviewer": "qe-mcp-expert-refresh",
+        "notes": "Verified Vite 8.1.4 against official Vite 8.1 announcement and supported versions; Rolldown and bundled dev mode caveats refreshed."
       },
       "clientSupport": {
         "claude": "mcp-tool",

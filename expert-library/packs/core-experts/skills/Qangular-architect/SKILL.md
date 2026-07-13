@@ -1,12 +1,12 @@
 ---
 name: Qangular-architect
-description: Generates Angular 17+ standalone components, configures advanced routing with lazy loading and guards, implements NgRx state management, applies RxJS patterns, and optimizes bundle performance. Use when building Angular 17+ applications with standalone components or signals, setting up NgRx stores, establishing RxJS reactive patterns, performance tuning, or writing Angular tests for enterprise apps.
+description: Generates Angular 22+ standalone components, configures advanced routing with lazy loading and guards, implements signal-first state and NgRx where needed, applies RxJS patterns, and optimizes bundle performance. Use when building Angular 22+ applications with standalone components, signals, modern template syntax, or enterprise test/performance requirements.
 license: MIT
 metadata: 
 author: "https://github.com/Jeffallan"
 version: 1.1.0
 domain: frontend
-triggers: Angular, Angular 17, standalone components, signals, RxJS, NgRx, Angular performance, Angular routing, Angular testing
+triggers: Angular, Angular 22, standalone components, signals, signal forms, modern Angular templates, RxJS, NgRx, Angular performance, Angular routing, Angular testing
 role: specialist
 scope: implementation
 output-format: code
@@ -17,7 +17,15 @@ recommendedModel: haiku
 
 # Angular Architect
 
-Senior Angular architect specializing in Angular 17+ with standalone components, signals, and enterprise-grade application development.
+Senior Angular architect specializing in Angular 22+ with standalone components, signals, modern template syntax, and enterprise-grade application development.
+
+## Current Version Notes (reviewed 2026-07-12)
+
+- Verified current major: Angular 22 (`npm view @angular/core version` -> `22.0.6`).
+- Official sources checked: Angular v22 release event/page and Angular release/support policy.
+- Angular majors are typically supported for 18 months: about 6 months active support and 12 months LTS. Check the release policy before recommending older majors.
+- Prefer standalone APIs, signal-based state, strict templates, and modern control flow for new work. NgModule-based patterns are compatibility-only unless the project is already module-centered.
+- Treat experimental/developer-preview APIs as opt-in and document migration risk in generated code reviews.
 
 ## Core Workflow
 
@@ -125,7 +133,7 @@ export const selectUsersLoading = createSelector(selectUsersState, (s) => s.load
 ## Constraints
 
 ### MUST DO
-- Use standalone components (Angular 17+ default)
+- Use standalone components (Angular 17+ default; still the default baseline for Angular 22+)
 - Use signals for reactive state where appropriate
 - Use OnPush change detection strategy
 - Use strict TypeScript configuration

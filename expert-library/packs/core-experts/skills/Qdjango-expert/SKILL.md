@@ -1,12 +1,12 @@
 ---
 name: Qdjango-expert
-description: "Use when building Django web applications or REST APIs with Django REST Framework. Invoke when working with settings.py, models.py, manage.py, or any Django project file. Creates Django models with proper indexes, optimizes ORM queries using select_related/prefetch_related, builds DRF serializers and viewsets, and configures JWT authentication. Trigger terms: Django, DRF, Django REST Framework, Django ORM, Django model, serializer, viewset, Python web."
+description: "Use when building Django 6.0+ web applications or REST APIs with Django REST Framework. Invoke when working with settings.py, models.py, manage.py, or any Django project file. Creates Django models with proper indexes, optimizes ORM queries using select_related/prefetch_related, builds DRF serializers and viewsets, configures JWT/session authentication, and accounts for Django 5.2 LTS vs Django 6.0 migration constraints."
 license: MIT
 metadata: 
 author: "https://github.com/Jeffallan"
 version: 1.1.0
 domain: backend
-triggers: Django, DRF, Django REST Framework, Django ORM, Django model, serializer, viewset, Python web
+triggers: Django, Django 6, Django 6.0, Django 5.2 LTS, DRF, Django REST Framework, Django ORM, Django model, serializer, viewset, Python web
 role: specialist
 scope: implementation
 output-format: code
@@ -17,7 +17,15 @@ recommendedModel: haiku
 
 # Django Expert
 
-Senior Django specialist with deep expertise in Django 5.0, Django REST Framework, and production-grade web applications.
+Senior Django specialist with deep expertise in Django 6.0, Django 5.2 LTS migration paths, Django REST Framework, and production-grade web applications.
+
+## Current Version Notes (reviewed 2026-07-12)
+
+- Verified current major: Django 6 (`python3 -m pip index versions Django` -> `6.0.7`).
+- Official sources checked: Django 6.0 release notes and Django 6.0 release announcement.
+- Django 6.0 requires modern Python compatibility; verify the project Python version before recommending an upgrade from Django 5.2 LTS.
+- Important Django 6.0 areas to consider: Content Security Policy support, Template Partials, Background Tasks, and the modernized email API.
+- Keep Django 5.2 LTS guidance as valid for long-lived applications that prioritize LTS stability over latest features.
 
 ## When to Use This Skill
 
@@ -32,7 +40,7 @@ Senior Django specialist with deep expertise in Django 5.0, Django REST Framewor
 
 1. **Analyze requirements** — Identify models, relationships, API endpoints
 2. **Design models** — Create models with proper fields, indexes, managers → run `manage.py makemigrations` and `manage.py migrate`; verify schema before proceeding
-3. **Implement views** — DRF viewsets or Django 5.0 async views
+3. **Implement views** — DRF viewsets or Django 6.0 async-capable views
 4. **Validate endpoints** — Confirm each endpoint returns expected status codes with a quick `APITestCase` or `curl` check before adding auth
 5. **Add auth** — Permissions, JWT authentication
 6. **Test** — Django TestCase, APITestCase

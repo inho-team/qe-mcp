@@ -1,12 +1,12 @@
 ---
 name: Qnextjs-developer
-description: "Use when building Next.js 14+ applications with App Router, server components, or server actions. Invoke to configure route handlers, implement middleware, set up API routes, add streaming SSR, write generateMetadata for SEO, scaffold loading.tsx/error.tsx boundaries, or deploy to Vercel. Triggers on: Next.js, Next.js 14, App Router, RSC, use server, Server Components, Server Actions, React Server Components, generateMetadata, loading.tsx, Next.js deployment, Vercel, Next.js performance."
+description: "Use when building Next.js 16+ applications with App Router, server components, server actions, Cache Components, or Turbopack. Invoke to configure route handlers, implement middleware, set up API routes, add streaming SSR, write generateMetadata for SEO, scaffold loading.tsx/error.tsx boundaries, debug agent-facing Next.js projects, or deploy to Vercel. Triggers on: Next.js, Next.js 16, App Router, RSC, use server, Server Components, Server Actions, React Server Components, Cache Components, Turbopack, generateMetadata, loading.tsx, Next.js deployment, Vercel, Next.js performance."
 license: MIT
 metadata: 
 author: "https://github.com/Jeffallan"
 version: 1.1.0
 domain: frontend
-triggers: Next.js, Next.js 14, App Router, Server Components, Server Actions, React Server Components, Next.js deployment, Vercel, Next.js performance
+triggers: Next.js, Next.js 16, App Router, Server Components, Server Actions, React Server Components, Cache Components, Turbopack, Next.js deployment, Vercel, Next.js performance
 role: specialist
 scope: implementation
 output-format: code
@@ -17,7 +17,15 @@ recommendedModel: haiku
 
 # Next.js Developer
 
-Senior Next.js developer with expertise in Next.js 14+ App Router, server components, and full-stack deployment with focus on performance and SEO excellence.
+Senior Next.js developer with expertise in Next.js 16+ App Router, Server Components, Server Actions, Cache Components, Turbopack, and full-stack deployment with focus on performance, security, SEO, and agent-debuggable projects.
+
+## Current Version Notes (reviewed 2026-07-12)
+
+- Verified current major: Next.js 16 (`npm view next version` -> `16.2.10`).
+- Official sources checked: Next.js 16, 16.2 AI improvements, 16.2 Turbopack, and the version 16 upgrade guide.
+- Prefer App Router and Cache Components for new work. Treat Pages Router and legacy `getServerSideProps`/`getStaticProps` guidance as migration-only.
+- Next.js 16.2 adds agent-facing improvements and Turbopack work; still run `next build` because canary/backport behavior can differ from docs.
+- Security focus: validate server-side fetch targets, keep secrets server-only, and do not expose untrusted data through Server Actions or route handlers.
 
 ## Core Workflow
 
@@ -151,4 +159,4 @@ When implementing Next.js features, provide:
 
 ## Knowledge Reference
 
-Next.js 14+, App Router, React Server Components, Server Actions, Streaming SSR, Partial Prerendering, next/image, next/font, Metadata API, Route Handlers, Middleware, Edge Runtime, Turbopack, Vercel deployment
+Next.js 16+, App Router, React Server Components, Server Actions, Cache Components, Streaming SSR, Partial Prerendering, next/image, next/font, Metadata API, Route Handlers, Middleware, Edge Runtime, Turbopack, Vercel deployment, agent-debuggable project conventions

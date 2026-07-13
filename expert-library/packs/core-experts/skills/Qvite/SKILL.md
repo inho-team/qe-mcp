@@ -1,6 +1,6 @@
 ---
 name: Qvite
-description: Vite build tool configuration, plugin API, SSR, and Vite 8 Rolldown migration. Use when working with Vite projects, vite.config.ts, Vite plugins, or building libraries/SSR apps with Vite.
+description: Vite 8.1 build tool configuration, plugin API, SSR, Environment API, and Rolldown migration. Use when working with Vite projects, vite.config.ts, Vite plugins, large-app dev server performance, or building libraries/SSR apps with Vite.
 metadata: 
 author: Anthony Fu
 version: 2026.1.31
@@ -11,9 +11,17 @@ recommendedModel: haiku
 
 # Vite
 
-> Based on Vite 8 beta (Rolldown-powered). Vite 8 uses Rolldown bundler and Oxc transformer.
+> Based on Vite 8.1 (Rolldown-powered). Vite 8 uses Rolldown bundler and Oxc transformer; Vite 8.1 is the current regular-patch line as of the 2026-07-12 review.
 
 Vite is a next-generation frontend build tool with fast dev server (native ESM + HMR) and optimized production builds.
+
+## Current Version Notes (reviewed 2026-07-12)
+
+- Verified current major/minor: Vite 8.1 (`npm view vite version` -> `8.1.4`).
+- Official sources checked: Vite 8.1 announcement, Vite 8 announcement, and Vite supported versions page.
+- Vite 8.1 is the regular patch line; Vite 8.0 and 7.3 receive important/security backports, and Vite 6.4 receives security backports only.
+- New projects should target Vite 8.1 unless a framework adapter pins an older supported line.
+- For large apps, evaluate the Vite 8.1 bundled dev mode/full bundle mode experimentally and keep rollback notes because performance characteristics are project-dependent.
 
 ## Preferences
 
