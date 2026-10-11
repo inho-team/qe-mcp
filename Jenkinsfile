@@ -10,19 +10,36 @@ pipeline {
 
     stages {
         stage('Linux') {
-            agent { label 'docker' }
+            agent { label 'macmini' }
+            environment {
+                PATH = "/opt/homebrew/bin:${env.PATH}"
+                DOCKER_HOST = 'unix:///Users/kimjinseong/.colima/ci/docker.sock'
+            }
             steps {
                 checkout scm
+                sh 'colima start --profile ci --activate=false'
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withEnv(["PATH+NODE20=/home/jenkins/agent/tools/node20/node-v20.20.2-linux-x64/bin"]) {
-                        sh 'node --version && npm run check && npm run selftest'
-                    }
+                    sh '''docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$WORKSPACE:/workspace" -w /workspace node:20.20.2-bookworm-slim sh -lc 'node --version && npm run check && npm run selftest' '''
                 }
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    sh 'node --version && npm run check && npm run selftest'
+                    sh '''docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$WORKSPACE:/workspace" -w /workspace node:22.23.2-bookworm-slim sh -lc 'node --version && npm run check && npm run selftest' '''
                 }
             }
-            post { always { cleanWs(deleteDirs: true, notFailBuild: true) } }
+            post {
+                always {
+                    sh '''
+                        if docker info >/dev/null 2>&1; then
+                            running=$(docker ps -q)
+                            if [ -z "$running" ]; then
+                                colima stop --profile ci
+                            else
+                                echo "CI Docker has running containers; inspect them before stopping the profile."
+                            fi
+                        fi
+                    '''
+                    cleanWs(deleteDirs: true, notFailBuild: true)
+                }
+            }
         }
 
         stage('macOS') {
