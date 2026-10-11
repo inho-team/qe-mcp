@@ -600,7 +600,7 @@ async function runRunnerModuleTests() {
   const outsideDir = mkdtempSync(resolve(tmpdir(), 'qe-mcp-outside-'));
   const linkPath = resolve(process.cwd(), '.__qe_selftest_outside_link');
   try {
-    symlinkSync(outsideDir, linkPath);
+    symlinkSync(outsideDir, linkPath, process.platform === 'win32' ? 'junction' : 'dir');
     try {
       resolveAllowedCwd(linkPath);
       throw new Error('resolveAllowedCwd allowed symlink escape');
@@ -910,17 +910,16 @@ async function runExpertPackTests() {
       throw new Error('schemaVersion mismatch did not emit a warning');
     }
 
-    // Symlink-escape guard: an expert whose SKILL.md symlinks outside the pack
-    // root must be refused at read time even though the lexical path looks in-bounds.
+    // Symlink-escape guard: an expert path linked outside the pack root must be
+    // refused at read time even though the lexical path looks in-bounds.
     const evilRoot = writeExtraFixture(1);
     fixtures.push(evilRoot);
     const outsideDir = mkdtempSync(resolve(tmpdir(), 'qe-outside-secret-'));
     fixtures.push(outsideDir);
-    const secretFile = join(outsideDir, 'secret.md');
+    const secretFile = join(outsideDir, 'SKILL.md');
     writeFileSync(secretFile, 'TOP SECRET — must not be readable via an expert\n');
     const evilSkillDir = join(evilRoot, 'experts', 'QEvil');
-    mkdirSync(evilSkillDir, { recursive: true });
-    symlinkSync(secretFile, join(evilSkillDir, 'SKILL.md'));
+    symlinkSync(outsideDir, evilSkillDir, process.platform === 'win32' ? 'junction' : 'dir');
     const evilIndex = JSON.parse(readFileSync(join(evilRoot, 'extra-index.json'), 'utf8'));
     evilIndex.experts.push({
       name: 'QEvil', kind: 'skill', pack: 'extra-experts', domain: 'testing',
