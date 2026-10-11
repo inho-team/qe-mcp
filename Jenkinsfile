@@ -19,10 +19,10 @@ pipeline {
                 checkout scm
                 sh 'colima start --profile ci --activate=false'
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    sh '''docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$WORKSPACE:/workspace" -w /workspace node:20.20.2-bookworm-slim sh -lc 'node --version && npm run check && npm run selftest' '''
+                    sh '''docker run --rm -e HOME=/tmp -v "$WORKSPACE:/workspace" -w /workspace node:20.20.2-bookworm-slim sh -lc 'node --version && npm run check && npm run selftest' '''
                 }
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    sh '''docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$WORKSPACE:/workspace" -w /workspace node:22.23.2-bookworm-slim sh -lc 'node --version && npm run check && npm run selftest' '''
+                    sh '''docker run --rm -e HOME=/tmp -v "$WORKSPACE:/workspace" -w /workspace node:22.23.2-bookworm-slim sh -lc 'node --version && npm run check && npm run selftest' '''
                 }
             }
             post {
