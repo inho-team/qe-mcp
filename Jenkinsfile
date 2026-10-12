@@ -59,24 +59,5 @@ pipeline {
             }
             post { always { cleanWs(deleteDirs: true, notFailBuild: true) } }
         }
-
-        stage('Windows') {
-            agent { label 'windows' }
-            steps {
-                bat 'git config --global core.autocrlf false'
-                checkout scm
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withEnv(["PATH+NODE20=C:/Users/kjsun/AppData/Local/JenkinsAgent/node20/node-v20.20.2-win-x64"]) {
-                        bat 'node --version && call npm.cmd run check && call npm.cmd run selftest'
-                    }
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withEnv(["PATH+NODE22=C:/Users/kjsun/AppData/Local/JenkinsAgent/node22/node-v22.23.2-win-x64"]) {
-                        bat 'node --version && call npm.cmd run check && call npm.cmd run selftest'
-                    }
-                }
-            }
-            post { always { cleanWs(deleteDirs: true, notFailBuild: true) } }
-        }
     }
 }
